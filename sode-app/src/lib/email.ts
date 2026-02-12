@@ -1,22 +1,33 @@
-import { Resend } from 'resend';
+import { SMTPClient } from 'emailjs';
 
-const resend = process.env.RESEND_API_KEY ? new Resend(process.env.RESEND_API_KEY) : null;
+const client = (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS)
+  ? new SMTPClient({
+    user: process.env.SMTP_USER,
+    password: process.env.SMTP_PASS,
+    host: process.env.SMTP_HOST,
+    port: Number(process.env.SMTP_PORT) || 587,
+    ssl: process.env.SMTP_SECURE === 'true',
+  })
+  : null;
 
 export async function sendOTPEmail(email: string, otp: string, username?: string) {
-    const displayName = username || 'Devotee';
+  const displayName = username || 'Devotee';
 
-    if (!resend) {
-        console.warn("RESEND_API_KEY not found. Falling back to console log.");
-        console.log(`[REAL EMAIL MOCK] To: ${email} | Name: ${displayName} | OTP: ${otp}`);
-        return { success: true, mocked: true, otp, username: displayName };
-    }
+  if (!client) {
+    console.warn("SMTP credentials not found in environment variables. Falling back to console log.");
+    console.log(`[REAL EMAIL MOCK] To: ${email} | Name: ${displayName} | OTP: ${otp}`);
+    return { success: true, mocked: true, otp, username: displayName };
+  }
 
-    try {
-        const { data, error } = await resend.emails.send({
-            from: 'Sode Matha App <onboarding@resend.dev>',
-            to: [email],
-            subject: `Namaste ${displayName}, Your OTP for Sode Matha App`,
-            html: `
+  try {
+    await client.sendAsync({
+      text: `Namaste ${displayName}, Your OTP for Sode Matha App is: ${otp}`,
+      from: `Sode Matha App <${process.env.SMTP_USER}>`,
+      to: email,
+      subject: `Namaste ${displayName}, Your OTP for Sode Matha App`,
+      attachment: [
+        {
+          data: `
         <div style="font-family: 'Merriweather', serif; padding: 40px; background-color: #2D0000; border: 4px solid #D4AF37; border-radius: 20px; color: #FFFFFF; max-width: 600px; margin: auto;">
           <div style="text-align: center; margin-bottom: 30px;">
             <h1 style="color: #FFD700; margin: 0; font-size: 28px; text-transform: uppercase; letter-spacing: 2px;">Sri Sode Vadiraja Matha</h1>
@@ -43,17 +54,14 @@ export async function sendOTPEmail(email: string, otp: string, username?: string
             </div>
           </div>
         </div>
-      `,
-        });
-
-        if (error) {
-            console.error("Resend Error:", error);
-            return { success: false, error };
+      `, alternative: true
         }
+      ]
+    });
 
-        return { success: true, id: data?.id };
-    } catch (err) {
-        console.error("Email Dispatch Error:", err);
-        return { success: false, error: err };
-    }
+    return { success: true };
+  } catch (err) {
+    console.error("Email Dispatch Error:", err);
+    return { success: false, error: err };
+  }
 }

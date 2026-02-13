@@ -56,15 +56,20 @@ export default function ContactPage() {
                         </CardContent>
                     </Card>
 
-                    <div className="h-full min-h-[400px] glass-card rounded-2xl overflow-hidden border border-gold-500/20 text-center flex flex-col items-center justify-center p-12 bg-maroon-950/50 shadow-inner group">
-                        <div className="w-24 h-24 mb-6 rounded-full bg-gold-500/5 border border-gold-500/20 flex items-center justify-center text-gold-500 group-hover:scale-110 transition-transform duration-700">
-                            <MapPin className="w-12 h-12 opacity-50" />
+                    <div className="h-full min-h-[400px] glass-card rounded-2xl overflow-hidden border border-gold-500/20 shadow-inner group relative">
+                        <iframe
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3882.355171734!2d74.7554!3d13.3408!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bbcbb6ed22c6ed1%3A0x867332c0f2097650!2sSode%20Matha!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0 }}
+                            allowFullScreen={true}
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            className="grayscale opacity-80 hover:grayscale-0 hover:opacity-100 transition-all duration-700"
+                        ></iframe>
+                        <div className="absolute top-4 left-4 bg-maroon-950/80 backdrop-blur-md px-4 py-2 rounded-full border border-gold-500/30">
+                            <p className="text-gold-400 font-bold uppercase tracking-widest text-[10px]">Live Temple Location</p>
                         </div>
-                        <h3 className="text-2xl font-serif font-bold text-white mb-4">Temple Location Guide</h3>
-                        <p className="text-white/60 mb-8 max-w-xs mx-auto text-sm leading-relaxed">Visualize your spiritual journey to Sode Matha. Our location is at the spiritual heart of Udupi.</p>
-                        <Button variant="outline" className="border-gold-500/30 text-gold-400 hover:bg-gold-500 hover:text-maroon-950 px-8 py-6 rounded-full transition-all uppercase tracking-widest font-bold text-xs">
-                            View on Google Maps
-                        </Button>
                     </div>
                 </div>
             </main>

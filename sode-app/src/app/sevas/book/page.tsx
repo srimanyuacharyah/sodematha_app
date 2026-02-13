@@ -40,6 +40,15 @@ const formSchema = z.object({
 });
 
 import { SimulatedPhone } from "@/components/simulated-phone";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogDescription,
+    DialogFooter,
+} from "@/components/ui/dialog"
+import { toast } from "sonner";
 
 const inputClasses = "flex h-12 w-full rounded-xl border border-gold-500/20 bg-black/40 px-4 py-2 text-white placeholder:text-white/20 focus:outline-none focus:ring-2 focus:ring-gold-500/50 focus:border-gold-500 transition-all font-sans";
 const labelClasses = "text-sm font-black uppercase tracking-widest text-gold-400 mb-2 block";
@@ -72,30 +81,53 @@ function BookingFormContent() {
         },
     });
 
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [formData, setFormData] = useState<z.infer<typeof formSchema> | null>(null);
+
     const watchSeva = form.watch("sevaId");
     const selectedSeva = sevas.find(s => s.id === watchSeva);
 
     async function onSubmit(values: z.infer<typeof formSchema>) {
-        setIsSubmitting(true);
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        setIsSubmitting(false);
-        setIsSuccess(true);
-        // Trigger SMS Simulation
-        setShowPhone(true);
+        if (!selectedSeva) {
+            toast.error("Please select a Seva first.");
+            return;
+        }
+        setFormData(values);
+        setShowPaymentModal(true);
+    }
 
-        // Call Real SMS API
-        try {
-            await fetch("/api/send-sms", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    to: values.phone,
-                    message: `Booking Successful! Seva: ${selectedSeva?.name}. Receipt #BK-2026-${Math.floor(Math.random() * 1000)}. - Sri Sode Vadiraja Matha`
-                }),
-            });
-        } catch (err) {
-            console.error("SMS API Call Failed", err);
+    const handlePaymentAction = async (status: "success" | "failure") => {
+        if (!formData || !selectedSeva) return;
+
+        setIsSubmitting(true);
+        setShowPaymentModal(false);
+
+        // Simulate processing
+        await new Promise(resolve => setTimeout(resolve, 1500));
+
+        if (status === "success") {
+            setIsSuccess(true);
+            setShowPhone(true);
+
+            // Call Payment API to send real email
+            try {
+                await fetch("/api/payment", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: formData.email,
+                        amount: selectedSeva.amount,
+                        sevaName: selectedSeva.name,
+                        status: "success",
+                        username: formData.name
+                    }),
+                });
+            } catch (err) {
+                console.error("Payment API/Email Failed", err);
+            }
+        } else {
+            setIsSubmitting(false);
+            toast.error("Payment Failed. Please try again or contact the Matha office.");
         }
     }
 
@@ -249,6 +281,34 @@ function BookingFormContent() {
                     )}
                 </Button>
             </div>
+
+            {/* Payment Simulation Dialog */}
+            <Dialog open={showPaymentModal} onOpenChange={setShowPaymentModal}>
+                <DialogContent className="bg-maroon-950 border-gold-500/30 text-white max-w-md">
+                    <DialogHeader>
+                        <DialogTitle className="text-2xl font-serif text-gold-400 uppercase tracking-widest text-center">Payment Simulation</DialogTitle>
+                        <DialogDescription className="text-gray-400 text-center">
+                            You are paying <strong>₹ {selectedSeva?.amount}</strong> for <strong>{selectedSeva?.name}</strong>.
+                            Choose the outcome of this simulated transaction.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="flex flex-col gap-4 py-8">
+                        <Button
+                            onClick={() => handlePaymentAction("success")}
+                            className="bg-green-600 hover:bg-green-700 text-white py-8 text-xl font-bold rounded-2xl transition-all hover:scale-105"
+                        >
+                            Simulate Success
+                        </Button>
+                        <Button
+                            variant="destructive"
+                            onClick={() => handlePaymentAction("failure")}
+                            className="py-8 text-xl font-bold rounded-2xl transition-all hover:scale-105"
+                        >
+                            Simulate Failure
+                        </Button>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </form>
     );
 }

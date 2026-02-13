@@ -15,6 +15,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { SodeLogo } from "./sode-logo";
+import { VoiceAssistant } from "./voice-assistant";
 
 export function Header() {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -58,13 +59,14 @@ export function Header() {
             <div className={cn("bg-maroon-900/50 backdrop-blur-md text-white transition-all duration-300 ease-in-out border-y border-gold-500/20", isMenuOpen ? "block" : "hidden md:block")}>
                 <div className="container mx-auto px-4">
                     <nav className="flex flex-col md:flex-row items-center justify-center gap-8 py-3 md:py-4 text-sm font-bold relative">
-                        <Link href="/" className="hover:text-gold-400 transition-colors uppercase tracking-[0.1em]">{t.nav.home}</Link>
+                        <Link href="/sevas" className="hover:text-gold-400 transition-colors uppercase tracking-[0.1em]">{t.nav.home}</Link>
                         <Link href="/history" className="hover:text-gold-400 transition-colors uppercase tracking-[0.1em]">{t.nav.history}</Link>
                         <Link href="/sevas" className="hover:text-gold-400 transition-colors uppercase tracking-[0.1em]">{t.nav.sevas}</Link>
                         <Link href="/gallery" className="hover:text-gold-400 transition-colors uppercase tracking-[0.1em]">{t.nav.gallery}</Link>
                         <Link href="/contact" className="hover:text-gold-400 transition-colors hidden md:block uppercase tracking-[0.1em]">{t.nav.contact}</Link>
 
                         <div className="flex items-center gap-4 md:absolute md:right-0 py-2 md:py-0 justify-center">
+                            <VoiceAssistant />
                             {/* Language Switcher */}
                             <DropdownMenu>
                                 <DropdownMenuTrigger asChild>

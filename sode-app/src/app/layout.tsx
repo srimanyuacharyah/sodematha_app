@@ -35,6 +35,14 @@ export default function RootLayout({
           <AuthProvider>
             {children}
             <Toaster position="top-center" richColors />
+
+            {/* Chatbase Integration */}
+            <script
+              src="https://www.chatbase.co/embed.min.js"
+              defer
+              data-chatbot-id="your-chatbot-id" // Placeholder
+              data-domain="www.chatbase.co"
+            ></script>
           </AuthProvider>
         </LanguageProvider>
       </body>

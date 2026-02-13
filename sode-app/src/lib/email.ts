@@ -7,6 +7,7 @@ const client = (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SM
     host: process.env.SMTP_HOST,
     port: Number(process.env.SMTP_PORT) || 587,
     ssl: process.env.SMTP_SECURE === 'true',
+    tls: process.env.SMTP_TLS !== 'false',
   })
   : null;
 

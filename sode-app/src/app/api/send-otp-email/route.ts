@@ -21,6 +21,7 @@ export async function POST(request: Request) {
             return NextResponse.json({ error: "Failed to send Email" }, { status: 500 });
         }
     } catch (error) {
+        console.error("API send-otp-email Error:", error);
         return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
     }
 }

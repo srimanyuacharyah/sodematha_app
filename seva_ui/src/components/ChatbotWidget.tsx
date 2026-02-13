@@ -1,380 +1,254 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 
-/* ─── Types ────────────────────────────────────────────────────────── */
-interface ChatMessage {
+/* ── Types ── */
+interface ChatMsg {
     id: string;
     role: "user" | "bot";
     text: string;
     links?: { label: string; href: string }[];
-    timestamp: Date;
 }
 
-/* ─── Feature Knowledge ────────────────────────────────────────────── */
-const SEVAS_INFO = [
-    { name: "One Day Sampurna Seva", nameKn: "ಒಂದು ದಿನದ ಸಂಪೂರ್ಣ ಸೇವೆ", amount: 5001, descEn: "Complete seva for one full day including Annadana.", descKn: "ಅನ್ನದಾನ ಸೇರಿದಂತೆ ಒಂದು ಪೂರ್ಣ ದಿನದ ಸಂಪೂರ್ಣ ಸೇವೆ." },
-    { name: "Maha Sarvaseva", nameKn: "ಮಹಾ ಸರ್ವಸೇವೆ", amount: 1500, descEn: "Special pooja and offering to the deity.", descKn: "ದೇವರಿಗೆ ವಿಶೇಷ ಪೂಜೆ ಮತ್ತು ನೈವೇದ್ಯ." },
-    { name: "Nanda Deepa (One Year)", nameKn: "ನಂದಾ ದೀಪ (ಒಂದು ವರ್ಷ)", amount: 1200, descEn: "Eternal lamp lit for one year in your name.", descKn: "ನಿಮ್ಮ ಹೆಸರಿನಲ್ಲಿ ಒಂದು ಪೂರ್ಣ ವರ್ಷದ ನಂದಾದೀಪ." },
-    { name: "Alankara Pooja", nameKn: "ಅಲಂಕಾರ ಪೂಜೆ", amount: 501, descEn: "Decoration of the deity with flowers.", descKn: "ಹೂವುಗಳಿಂದ ದೇವರ ಅಲಂಕಾರ." },
-    { name: "Panchamrutha Abhisheka", nameKn: "ಪಂಚಾಮೃತ ಅಭಿಷೇಕ", amount: 1001, descEn: "Abhisheka with five sacred liquids.", descKn: "ಐದು ಪವಿತ್ರ ದ್ರವಗಳಿಂದ ಅಭಿಷೇಕ." },
-    { name: "General Kanike", nameKn: "ಸಾಮಾನ್ಯ ಕಾಣಿಕೆ", amount: 100, descEn: "General contribution to the Matha.", descKn: "ಮಠಕ್ಕೆ ಸಾಮಾನ್ಯ ಕಾಣಿಕೆ." },
+/* ── Knowledge Base ── */
+const SEVAS = [
+    { n: "One Day Sampurna Seva", k: "ಒಂದು ದಿನದ ಸಂಪೂರ್ಣ ಸೇವೆ", a: 5001, d: "Complete seva for one full day including Annadana.", dk: "ಅನ್ನದಾನ ಸೇರಿದಂತೆ ಒಂದು ಪೂರ್ಣ ದಿನದ ಸಂಪೂರ್ಣ ಸೇವೆ." },
+    { n: "Maha Sarvaseva", k: "ಮಹಾ ಸರ್ವಸೇವೆ", a: 1500, d: "Special pooja and offering to the deity.", dk: "ದೇವರಿಗೆ ವಿಶೇಷ ಪೂಜೆ ಮತ್ತು ನೈವೇದ್ಯ." },
+    { n: "Nanda Deepa (One Year)", k: "ನಂದಾ ದೀಪ (ಒಂದು ವರ್ಷ)", a: 1200, d: "Eternal lamp for one year in your name.", dk: "ನಿಮ್ಮ ಹೆಸರಿನಲ್ಲಿ ನಂದಾದೀಪ." },
+    { n: "Alankara Pooja", k: "ಅಲಂಕಾರ ಪೂಜೆ", a: 501, d: "Decoration of the deity with flowers.", dk: "ಹೂವುಗಳಿಂದ ದೇವರ ಅಲಂಕಾರ." },
+    { n: "Panchamrutha Abhisheka", k: "ಪಂಚಾಮೃತ ಅಭಿಷೇಕ", a: 1001, d: "Abhisheka with five sacred liquids.", dk: "ಐದು ಪವಿತ್ರ ದ್ರವಗಳಿಂದ ಅಭಿಷೇಕ." },
+    { n: "General Kanike", k: "ಸಾಮಾನ್ಯ ಕಾಣಿಕೆ", a: 100, d: "General contribution to the Matha.", dk: "ಮಠಕ್ಕೆ ಸಾಮಾನ್ಯ ಕಾಣಿಕೆ." },
 ];
 
-const TIMINGS = {
-    sode: { morning: "5:00 AM – 1:00 PM", evening: "4:00 PM – 8:30 PM", prasada: "12:30 PM – 2:00 PM" },
-    udupi: { morning: "4:30 AM – 1:30 PM", evening: "4:00 PM – 9:00 PM", prasada: "11:30 AM – 2:00 PM" },
-};
+function isKn(t: string) { return /[\u0C80-\u0CFF]/.test(t); }
 
-/* ─── Language Detect ──────────────────────────────────────────────── */
-function isKannada(text: string): boolean {
-    return /[\u0C80-\u0CFF]/.test(text);
-}
+function reply(input: string): { text: string; links?: { label: string; href: string }[] } {
+    const lo = input.toLowerCase();
+    const kn = isKn(input);
 
-/* ─── Response Engine ──────────────────────────────────────────────── */
-interface BotReply { text: string; links?: { label: string; href: string }[] }
-
-function getReply(input: string): BotReply {
-    const low = input.toLowerCase();
-    const kn = isKannada(input);
-
-    // Greetings
-    if (/^(hi|hello|hey|namaste|namaskara|ನಮಸ್ಕಾರ|ಹಾಯ್|ಹಲೋ|ನಮಸ್ತೆ)/i.test(low)) {
+    if (/^(hi|hello|hey|namaste|namaskara|ನಮಸ್ಕಾರ|ಹಾಯ್|ಹಲೋ|ನಮಸ್ತೆ)/i.test(lo))
         return {
-            text: kn
-                ? "🙏 ನಮಸ್ಕಾರ! ಶ್ರೀ ಸೋದೆ ವಾದಿರಾಜ ಮಠದ ಸೇವಾ ಸಹಾಯಕಕ್ಕೆ ಸ್ವಾಗತ.\nಸೇವೆಗಳು, ಇತಿಹಾಸ, ದರ್ಶನ ಸಮಯ ಬಗ್ಗೆ ಕೇಳಿ!"
+            text: kn ? "🙏 ನಮಸ್ಕಾರ! ಶ್ರೀ ಸೋದೆ ವಾದಿರಾಜ ಮಠದ ಸೇವಾ ಸಹಾಯಕಕ್ಕೆ ಸ್ವಾಗತ.\nಸೇವೆಗಳು, ಇತಿಹಾಸ, ದರ್ಶನ ಸಮಯ ಬಗ್ಗೆ ಕೇಳಿ!"
                 : "🙏 Namaste! Welcome to Sri Sode Vadiraja Matha.\nAsk me about Sevas, history, darshan timings & more!",
-            links: [
-                { label: kn ? "ಸೇವೆಗಳು" : "View Sevas", href: "/sevas" },
-                { label: kn ? "ಇತಿಹಾಸ" : "History", href: "/history" },
-            ],
+            links: [{ label: kn ? "ಸೇವೆಗಳು" : "View Sevas", href: "/sevas" }, { label: kn ? "ಇತಿಹಾಸ" : "History", href: "/history" }]
         };
-    }
 
-    // Book seva
-    if (/book|ಬುಕ್|reserve|how to.*seva/i.test(low)) {
+    if (/book|ಬುಕ್|reserve|how to.*seva/i.test(lo))
         return {
-            text: kn
-                ? "ಸೇವೆ ಬುಕ್ ಮಾಡಲು:\n1️⃣ ಸೇವೆಗಳು ಪುಟಕ್ಕೆ ಹೋಗಿ\n2️⃣ ಸೇವೆ ಆಯ್ಕೆ ಮಾಡಿ\n3️⃣ Book Seva ಕ್ಲಿಕ್ ಮಾಡಿ\n4️⃣ ವಿವರ ಭರ್ತಿ ಮಾಡಿ\n5️⃣ ಪಾವತಿ ಮಾಡಿ 👇"
-                : "To book a Seva:\n1️⃣ Go to the Sevas page\n2️⃣ Choose the seva you want\n3️⃣ Click 'Book Seva'\n4️⃣ Fill in your details\n5️⃣ Complete payment 👇",
-            links: [{ label: kn ? "ಸೇವೆ ಬುಕ್" : "Book Seva", href: "/sevas" }],
+            text: kn ? "ಸೇವೆ ಬುಕ್ ಮಾಡಲು:\n1️⃣ ಸೇವೆಗಳು ಪುಟಕ್ಕೆ ಹೋಗಿ\n2️⃣ ಸೇವೆ ಆಯ್ಕೆ ಮಾಡಿ\n3️⃣ Book Seva ಕ್ಲಿಕ್ ಮಾಡಿ"
+                : "To book:\n1️⃣ Go to Sevas page\n2️⃣ Choose a seva\n3️⃣ Click Book Seva\n4️⃣ Fill details & pay",
+            links: [{ label: kn ? "ಸೇವೆ ಬುಕ್" : "Book Seva", href: "/sevas" }]
         };
+
+    if (/seva|pooja|puja|ಸೇವೆ|ಪೂಜೆ|service|ritual|offering/i.test(lo)) {
+        const l = SEVAS.map(s => "• " + (kn ? s.k : s.n) + " — ₹" + s.a).join("\n");
+        return { text: (kn ? "ಲಭ್ಯ ಸೇವೆಗಳು:\n\n" : "Available Sevas:\n\n") + l, links: [{ label: kn ? "ಸೇವೆಗಳು" : "View Sevas", href: "/sevas" }] };
     }
 
-    // Seva list / pooja
-    if (/seva|pooja|puja|ಸೇವೆ|ಪೂಜೆ|service|ritual|offering/i.test(low)) {
-        const list = SEVAS_INFO.map(s => `• ${kn ? s.nameKn : s.name} — ₹${s.amount}\n  ${kn ? s.descKn : s.descEn}`).join("\n\n");
+    if (/time|timing|darshan|ದರ್ಶನ|ಸಮಯ|when|open|schedule/i.test(lo))
         return {
-            text: kn ? `ಲಭ್ಯ ಸೇವೆಗಳು:\n\n${list}` : `Available Sevas:\n\n${list}`,
-            links: [{ label: kn ? "ಸೇವೆಗಳು ನೋಡಿ" : "View Sevas", href: "/sevas" }],
+            text: kn ? "🕐 ದರ್ಶನ ಸಮಯ:\n\n🛕 ಸೋದೆ ಮಠ:\n  ಬೆಳಗ್ಗೆ: 5:00 AM – 1:00 PM\n  ಸಂಜೆ: 4:00 PM – 8:30 PM\n\n🛕 ಉಡುಪಿ ಕೃಷ್ಣ ಮಠ:\n  ಬೆಳಗ್ಗೆ: 4:30 AM – 1:30 PM\n  ಸಂಜೆ: 4:00 PM – 9:00 PM"
+                : "🕐 Darshan Timings:\n\n🛕 Sode Matha:\n  Morning: 5:00 AM – 1:00 PM\n  Evening: 4:00 PM – 8:30 PM\n\n🛕 Udupi Krishna Matha:\n  Morning: 4:30 AM – 1:30 PM\n  Evening: 4:00 PM – 9:00 PM"
         };
-    }
 
-    // Timings
-    if (/time|timing|darshan|ದರ್ಶನ|ಸಮಯ|when|open|schedule|hour/i.test(low)) {
+    if (/history|about|ಇತಿಹಾಸ|ಮಠ|matha|vadiraja|ವಾದಿರಾಜ|sode|ಸೋದೆ/i.test(lo))
         return {
-            text: kn
-                ? `🕐 ದರ್ಶನ ಸಮಯ:\n\n🛕 ಸೋದೆ ಮಠ:\n  ಬೆಳಗ್ಗೆ: ${TIMINGS.sode.morning}\n  ಸಂಜೆ: ${TIMINGS.sode.evening}\n  ಪ್ರಸಾದ: ${TIMINGS.sode.prasada}\n\n🛕 ಉಡುಪಿ ಕೃಷ್ಣ ಮಠ:\n  ಬೆಳಗ್ಗೆ: ${TIMINGS.udupi.morning}\n  ಸಂಜೆ: ${TIMINGS.udupi.evening}\n  ಪ್ರಸಾದ: ${TIMINGS.udupi.prasada}`
-                : `🕐 Darshan Timings:\n\n🛕 Sode Matha:\n  Morning: ${TIMINGS.sode.morning}\n  Evening: ${TIMINGS.sode.evening}\n  Prasada: ${TIMINGS.sode.prasada}\n\n🛕 Udupi Krishna Matha:\n  Morning: ${TIMINGS.udupi.morning}\n  Evening: ${TIMINGS.udupi.evening}\n  Prasada: ${TIMINGS.udupi.prasada}`,
+            text: kn ? "🏛️ ಶ್ರೀ ಸೋದೆ ವಾದಿರಾಜ ಮಠ ಉಡುಪಿ ಅಷ್ಟಮಠಗಳಲ್ಲಿ ಒಂದು. 700+ ವರ್ಷ ಪರಂಪರೆ."
+                : "🏛️ Sri Sode Vadiraja Matha is one of the Eight Mathas in Udupi. 700+ years of heritage.",
+            links: [{ label: kn ? "ಇತಿಹಾಸ" : "History", href: "/history" }]
         };
-    }
 
-    // History
-    if (/history|about|ಇತಿಹಾಸ|ಮಠ|matha|vadiraja|ವಾದಿರಾಜ|sode|ಸೋದೆ|tradition/i.test(low)) {
+    if (/donat|kanike|ಕಾಣಿಕೆ|ದಾನ|contribute/i.test(lo))
         return {
-            text: kn
-                ? "🏛️ ಶ್ರೀ ಸೋದೆ ವಾದಿರಾಜ ಮಠ ಉಡುಪಿ ಅಷ್ಟಮಠಗಳಲ್ಲಿ ಒಂದು. 700+ ವರ್ಷ ಪರಂಪರೆ. ಶ್ರೀ ವಾದಿರಾಜ ತೀರ್ಥರಿಂದ ಸ್ಥಾಪಿತ. 👇"
-                : "🏛️ Sri Sode Vadiraja Matha is one of the Eight Mathas (Ashta Matha) in Udupi. It has 700+ years of tradition, established by Sri Vadiraja Teertha. 👇",
-            links: [{ label: kn ? "ಇತಿಹಾಸ" : "View History", href: "/history" }],
+            text: kn ? "🙏 ₹100 ರಿಂದ ಕಾಣಿಕೆ ಕೊಡಿ." : "🙏 Donate starting at ₹100.",
+            links: [{ label: kn ? "ಕಾಣಿಕೆ" : "Donate", href: "/sevas/book?sevaId=6" }]
         };
-    }
 
-    // Donation
-    if (/donat|kanike|ಕಾಣಿಕೆ|ದಾನ|contribute|give/i.test(low)) {
+    if (/gallery|photo|ಗ್ಯಾಲರಿ|ಫೋಟೋ|pic/i.test(lo))
         return {
-            text: kn
-                ? "🙏 ಕಾಣಿಕೆ ₹100 ರಿಂದ ಪ್ರಾರಂಭ. ನಿಮ್ಮ ಕೊಡುಗೆ ಮಠ ನವೀಕರಣ ಮತ್ತು ಅನ್ನದಾನಕ್ಕೆ ಸಹಾಯ ಮಾಡುತ್ತದೆ. 👇"
-                : "🙏 Donations start at ₹100. Your contribution supports temple renovation and Annadana. 👇",
-            links: [{ label: kn ? "ಕಾಣಿಕೆ" : "Donate Now", href: "/sevas/book?sevaId=6" }],
+            text: kn ? "📸 ಗ್ಯಾಲರಿ ನೋಡಿ" : "📸 Explore our gallery",
+            links: [{ label: kn ? "ಗ್ಯಾಲರಿ" : "Gallery", href: "/gallery" }]
         };
-    }
 
-    // Gallery
-    if (/gallery|photo|image|ಗ್ಯಾಲರಿ|ಫೋಟೋ|ಚಿತ್ರ|pic/i.test(low)) {
+    if (/contact|address|ಸಂಪರ್ಕ|ವಿಳಾಸ|where|phone/i.test(lo))
         return {
-            text: kn ? "📸 ಮಠದ ಫೋಟೋ ಗ್ಯಾಲರಿ ನೋಡಿ 👇" : "📸 Explore our beautiful photo gallery 👇",
-            links: [{ label: kn ? "ಗ್ಯಾಲರಿ" : "Gallery", href: "/gallery" }],
+            text: kn ? "📍 ಶ್ರೀ ಸೋದೆ ವಾದಿರಾಜ ಮಠ, ಉಡುಪಿ, ಕರ್ನಾಟಕ" : "📍 Sri Sode Vadiraja Matha, Udupi, Karnataka",
+            links: [{ label: kn ? "ಸಂಪರ್ಕ" : "Contact", href: "/contact" }]
         };
-    }
 
-    // Contact
-    if (/contact|address|location|phone|email|ಸಂಪರ್ಕ|ವಿಳಾಸ|where|reach/i.test(low)) {
+    if (/login|account|sign|ಲಾಗಿನ್|ಖಾತೆ|otp/i.test(lo))
         return {
-            text: kn
-                ? "📍 ಶ್ರೀ ಸೋದೆ ವಾದಿರಾಜ ಮಠ, ಉಡುಪಿ, ಕರ್ನಾಟಕ. ಹೆಚ್ಚಿನ ಮಾಹಿತಿಗೆ 👇"
-                : "📍 Sri Sode Vadiraja Matha, Udupi, Karnataka, India. More details 👇",
-            links: [{ label: kn ? "ಸಂಪರ್ಕ" : "Contact", href: "/contact" }],
+            text: kn ? "🔐 ಇಮೇಲ್ ಬಳಸಿ OTP ಲಾಗಿನ್ ಮಾಡಿ." : "🔐 Login using email OTP.",
+            links: [{ label: kn ? "ಲಾಗಿನ್" : "Login", href: "/login" }]
         };
+
+    if (/price|cost|amount|ಬೆಲೆ|ದರ|how much|ಎಷ್ಟು/i.test(lo)) {
+        const l = SEVAS.map(s => "• " + (kn ? s.k : s.n) + " — ₹" + s.a).join("\n");
+        return { text: (kn ? "💰 ಸೇವೆ ದರ:\n\n" : "💰 Prices:\n\n") + l, links: [{ label: kn ? "ಬುಕ್" : "Book Seva", href: "/sevas" }] };
     }
 
-    // Login
-    if (/login|account|sign|register|ಲಾಗಿನ್|ಖಾತೆ|otp/i.test(low)) {
+    if (/feature|what can|help|ಸಹಾಯ|app/i.test(lo))
         return {
-            text: kn
-                ? "🔐 ಲಾಗಿನ್: ನಿಮ್ಮ ಇಮೇಲ್ ಬಳಸಿ OTP ಪಡೆಯಿರಿ. 👇"
-                : "🔐 Login using your email to receive an OTP. 👇",
-            links: [{ label: kn ? "ಲಾಗಿನ್" : "Login", href: "/login" }],
+            text: kn ? "✨ ಸೇವೆ ಬುಕಿಂಗ್, ಇತಿಹಾಸ, ಗ್ಯಾಲರಿ, ದರ್ಶನ ಸಮಯ, ಸಂಪರ್ಕ, OTP ಲಾಗಿನ್, ಕಾಣಿಕೆ — ಎಲ್ಲ ಲಭ್ಯ!" : "✨ Seva booking, History, Gallery, Darshan timings, Contact, OTP Login, Donate — all available!",
+            links: [{ label: kn ? "ಸೇವೆಗಳು" : "Sevas", href: "/sevas" }, { label: kn ? "ಇತಿಹಾಸ" : "History", href: "/history" }]
         };
-    }
 
-    // Payment
-    if (/pay|payment|ಪಾವತಿ|upi|card|money/i.test(low)) {
-        return {
-            text: kn
-                ? "💳 UPI, ಡೆಬಿಟ್/ಕ್ರೆಡಿಟ್ ಕಾರ್ಡ್, ನೆಟ್ ಬ್ಯಾಂಕಿಂಗ್ ಮೂಲಕ ಪಾವತಿ ಮಾಡಬಹುದು. 👇"
-                : "💳 Pay via UPI (GPay, PhonePe), Debit/Credit card, or Net Banking. 👇",
-            links: [{ label: kn ? "ಸೇವೆ ಬುಕ್" : "Book Seva", href: "/sevas" }],
-        };
-    }
+    if (/thank|ಧನ್ಯವಾದ/i.test(lo))
+        return { text: kn ? "🙏 ಧನ್ಯವಾದಗಳು!" : "🙏 Thank you! May Sri Vadiraja bless you." };
 
-    // Features / Help
-    if (/feature|what can|ಏನು|ವೈಶಿಷ್ಟ್ಯ|help|ಸಹಾಯ|app/i.test(low)) {
-        return {
-            text: kn
-                ? "✨ ಆಪ್ ವೈಶಿಷ್ಟ್ಯಗಳು:\n🛕 ಆನ್‌ಲೈನ್ ಸೇವೆ ಬುಕಿಂಗ್\n📖 ಮಠದ ಇತಿಹಾಸ\n📸 ಫೋಟೋ ಗ್ಯಾಲರಿ\n🕐 ದರ್ಶನ ಸಮಯ\n📍 ಸಂಪರ್ಕ ಮಾಹಿತಿ\n🔐 OTP ಲಾಗಿನ್\n🙏 ಆನ್‌ಲೈನ್ ಕಾಣಿಕೆ\n🌐 ಕನ್ನಡ, English, ಸಂಸ್ಕೃತ"
-                : "✨ App Features:\n🛕 Online Seva Booking\n📖 Matha History\n📸 Photo Gallery\n🕐 Darshan Timings\n📍 Contact Info\n🔐 OTP Login\n🙏 Online Donations\n🌐 Kannada, English, Sanskrit",
-            links: [
-                { label: kn ? "ಸೇವೆಗಳು" : "Sevas", href: "/sevas" },
-                { label: kn ? "ಇತಿಹಾಸ" : "History", href: "/history" },
-            ],
-        };
-    }
-
-    // Price
-    if (/price|cost|amount|rate|ಬೆಲೆ|ದರ|how much|eshtu|ಎಷ್ಟು/i.test(low)) {
-        const list = SEVAS_INFO.map(s => `• ${kn ? s.nameKn : s.name} — ₹${s.amount}`).join("\n");
-        return {
-            text: kn ? `💰 ಸೇವೆ ದರ:\n\n${list}` : `💰 Seva Prices:\n\n${list}`,
-            links: [{ label: kn ? "ಬುಕ್ ಮಾಡಿ" : "Book Seva", href: "/sevas" }],
-        };
-    }
-
-    // Thanks
-    if (/thank|ಧನ್ಯವಾದ/i.test(low)) {
-        return { text: kn ? "🙏 ಧನ್ಯವಾದಗಳು! ಶ್ರೀ ವಾದಿರಾಜರ ಆಶೀರ್ವಾದ ನಿಮಗಿರಲಿ." : "🙏 Thank you! May Sri Vadiraja's blessings be with you." };
-    }
-
-    // Renovation
-    if (/renovation|temple|ದೇವಸ್ಥಾನ|ನವೀಕರಣ/i.test(low)) {
-        return {
-            text: kn ? "🏗️ ಮಠ ನವೀಕರಣ ಪ್ರಗತಿಯಲ್ಲಿದೆ. ನಿಮ್ಮ ಸೇವೆ ಮೂಲಕ ಭಾಗವಹಿಸಿ. 👇" : "🏗️ Temple renovation is ongoing. Contribute through Seva! 👇",
-            links: [{ label: kn ? "ಮುಖಪುಟ" : "Home", href: "/" }],
-        };
-    }
-
-    // Fallback
     return {
-        text: kn
-            ? "🙏 ಕ್ಷಮಿಸಿ, ಅರ್ಥ ಆಗಲಿಲ್ಲ. ಈ ವಿಷಯಗಳು ಕೇಳಿ:\n• ಸೇವೆಗಳು\n• ದರ್ಶನ ಸಮಯ\n• ಇತಿಹಾಸ\n• ಗ್ಯಾಲರಿ\n• ಕಾಣಿಕೆ\n• ಸಂಪರ್ಕ\n• ಲಾಗಿನ್"
-            : "🙏 I didn't understand that. Try asking about:\n• Sevas & Poojas\n• Darshan Timings\n• History\n• Gallery\n• Donations\n• Contact\n• Login",
-        links: [
-            { label: kn ? "ಸೇವೆಗಳು" : "Sevas", href: "/sevas" },
-            { label: kn ? "ಸಂಪರ್ಕ" : "Contact", href: "/contact" },
-        ],
+        text: kn ? "🙏 ಕ್ಷಮಿಸಿ. ಸೇವೆಗಳು, ಸಮಯ, ಇತಿಹಾಸ, ಕಾಣಿಕೆ ಬಗ್ಗೆ ಕೇಳಿ."
+            : "🙏 Try asking about: Sevas, Timings, History, Gallery, Donate, Contact, Login",
+        links: [{ label: kn ? "ಸೇವೆಗಳು" : "Sevas", href: "/sevas" }]
     };
 }
 
-/* ─── Quick Action Buttons ─────────────────────────────────────────── */
-const QUICK_EN = [
-    { label: "🛕 Sevas", q: "What sevas are available?" },
-    { label: "🕐 Timings", q: "Darshan timings" },
-    { label: "📖 History", q: "About Matha" },
-    { label: "✨ Features", q: "App features" },
-    { label: "💰 Prices", q: "Seva prices" },
-    { label: "🙏 Donate", q: "Donate" },
-];
-const QUICK_KN = [
-    { label: "🛕 ಸೇವೆ", q: "ಸೇವೆಗಳು" },
-    { label: "🕐 ಸಮಯ", q: "ದರ್ಶನ ಸಮಯ" },
-    { label: "📖 ಇತಿಹಾಸ", q: "ಮಠದ ಇತಿಹಾಸ" },
-    { label: "✨ ವೈಶಿಷ್ಟ್ಯ", q: "ಆಪ್ ವೈಶಿಷ್ಟ್ಯ" },
-    { label: "💰 ದರ", q: "ಸೇವೆ ಬೆಲೆ ಎಷ್ಟು" },
-    { label: "🙏 ಕಾಣಿಕೆ", q: "ಕಾಣಿಕೆ" },
-];
-
-/* ─── Styles (all inline for guaranteed rendering) ─────────────────── */
-const GOLD = "#D4AF37";
-const MAROON_DARK = "#1A0000";
-const MAROON = "#2D0000";
-
-/* ─── Component ────────────────────────────────────────────────────── */
+/* ── Component ── */
 export function ChatbotWidget() {
     const [open, setOpen] = useState(false);
-    const [msgs, setMsgs] = useState<ChatMessage[]>([]);
+    const [msgs, setMsgs] = useState<ChatMsg[]>([]);
     const [input, setInput] = useState("");
     const [typing, setTyping] = useState(false);
     const [lang, setLang] = useState<"en" | "kn">("en");
-    const bottomRef = useRef<HTMLDivElement>(null);
+    const [mounted, setMounted] = useState(false);
+    const endRef = useRef<HTMLDivElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
 
-    const scroll = useCallback(() => bottomRef.current?.scrollIntoView({ behavior: "smooth" }), []);
-    useEffect(() => { scroll(); }, [msgs, scroll]);
-    useEffect(() => { if (open && inputRef.current) inputRef.current.focus(); }, [open]);
+    useEffect(() => { setMounted(true); }, []);
+    useEffect(() => { endRef.current?.scrollIntoView({ behavior: "smooth" }); }, [msgs]);
+    useEffect(() => { if (open) inputRef.current?.focus(); }, [open]);
 
-    // Welcome on first open
     useEffect(() => {
         if (open && msgs.length === 0) {
             setMsgs([{
-                id: "w",
-                role: "bot",
+                id: "w", role: "bot",
                 text: lang === "kn"
-                    ? "🙏 ನಮಸ್ಕಾರ! ಶ್ರೀ ಸೋದೆ ವಾದಿರಾಜ ಮಠದ ಸೇವಾ ಸಹಾಯಕ.\n\nಕೆಳಗಿನ ಬಟನ್ ಕ್ಲಿಕ್ ಮಾಡಿ ಅಥವಾ ಕನ್ನಡ/English ಟೈಪ್ ಮಾಡಿ!"
-                    : "🙏 Namaste! Sri Sode Vadiraja Matha – Seva Sahayak.\n\nTap a button below or type in English / ಕನ್ನಡ!",
-                timestamp: new Date(),
+                    ? "🙏 ನಮಸ್ಕಾರ! ಸೇವಾ ಸಹಾಯಕಕ್ಕೆ ಸ್ವಾಗತ.\nಕನ್ನಡ/English ಟೈಪ್ ಮಾಡಿ ಅಥವಾ ಕೆಳಗಿನ ಬಟನ್ ಕ್ಲಿಕ್ ಮಾಡಿ!"
+                    : "🙏 Namaste! Welcome to Seva Sahayak.\nType in English or ಕನ್ನಡ, or tap a button below!",
             }]);
         }
     }, [open, msgs.length, lang]);
 
-    const send = useCallback((text?: string) => {
-        const msg = text || input.trim();
-        if (!msg) return;
-        const detected = isKannada(msg) ? "kn" : "en";
+    function send(text?: string) {
+        const t = text || input.trim();
+        if (!t) return;
+        const detected = isKn(t) ? "kn" : "en";
         setLang(detected);
-        setMsgs(p => [...p, { id: Date.now().toString(), role: "user", text: msg, timestamp: new Date() }]);
+        setMsgs(p => [...p, { id: Date.now() + "", role: "user", text: t }]);
         setInput("");
         setTyping(true);
         setTimeout(() => {
-            const r = getReply(msg);
-            setMsgs(p => [...p, { id: (Date.now() + 1).toString(), role: "bot", text: r.text, links: r.links, timestamp: new Date() }]);
+            const r = reply(t);
+            setMsgs(p => [...p, { id: Date.now() + "b", role: "bot", text: r.text, links: r.links }]);
             setTyping(false);
-        }, 500 + Math.random() * 500);
-    }, [input]);
+        }, 600);
+    }
 
-    const quicks = lang === "kn" ? QUICK_KN : QUICK_EN;
+    if (!mounted) return null;
+
+    const quicksEn = ["🛕 Sevas", "🕐 Timings", "📖 History", "💰 Prices", "🙏 Donate"];
+    const quicksKn = ["🛕 ಸೇವೆ", "🕐 ಸಮಯ", "📖 ಇತಿಹಾಸ", "💰 ಬೆಲೆ", "🙏 ಕಾಣಿಕೆ"];
+    const quicks = lang === "kn" ? quicksKn : quicksEn;
 
     return (
-        <>
-            {/* ── FAB Button ── */}
-            <button
+        <div id="seva-chatbot-root">
+            {/* FAB */}
+            <div
                 onClick={() => setOpen(!open)}
-                aria-label="Open Chatbot"
                 style={{
-                    position: "fixed",
-                    bottom: 24,
-                    right: 24,
-                    zIndex: 99999,
-                    width: 64,
-                    height: 64,
-                    borderRadius: "50%",
-                    border: "none",
+                    position: "fixed", bottom: 24, right: 24, zIndex: 99999,
+                    width: 64, height: 64, borderRadius: "50%",
+                    background: open ? "#2D0000" : "linear-gradient(135deg, #D4AF37, #B8860B)",
+                    boxShadow: "0 8px 32px rgba(212,175,55,0.5)",
                     cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    background: open ? MAROON : `linear-gradient(135deg, ${GOLD}, #B8860B)`,
-                    boxShadow: `0 8px 32px rgba(212,175,55,0.5)`,
-                    transition: "all 0.3s ease",
-                    transform: "scale(1)",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    transition: "transform 0.2s, background 0.3s",
+                    userSelect: "none",
                 }}
-                onMouseEnter={e => (e.currentTarget.style.transform = "scale(1.1)")}
-                onMouseLeave={e => (e.currentTarget.style.transform = "scale(1)")}
+                role="button"
+                tabIndex={0}
+                aria-label="Toggle Chatbot"
             >
                 {open ? (
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                    <span style={{ color: "#fff", fontSize: 28, fontWeight: 300, lineHeight: 1 }}>✕</span>
                 ) : (
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke={MAROON_DARK} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" /></svg>
+                    <span style={{ fontSize: 28, lineHeight: 1 }}>💬</span>
                 )}
-            </button>
+            </div>
 
-            {/* ── Chat Window ── */}
+            {/* Chat Window */}
             {open && (
                 <div style={{
-                    position: "fixed",
-                    bottom: 100,
-                    right: 24,
-                    zIndex: 99998,
-                    width: 380,
-                    maxWidth: "calc(100vw - 2rem)",
-                    height: 540,
-                    maxHeight: "calc(100vh - 8rem)",
-                    borderRadius: 20,
-                    overflow: "hidden",
-                    display: "flex",
-                    flexDirection: "column",
-                    background: `linear-gradient(180deg, ${MAROON_DARK} 0%, #0a0000 100%)`,
-                    boxShadow: `0 20px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(212,175,55,0.2)`,
-                    animation: "chatFadeIn 0.3s ease-out",
+                    position: "fixed", bottom: 100, right: 24, zIndex: 99998,
+                    width: 370, maxWidth: "calc(100vw - 2rem)",
+                    height: 520, maxHeight: "calc(100vh - 8rem)",
+                    borderRadius: 20, overflow: "hidden",
+                    display: "flex", flexDirection: "column",
+                    background: "linear-gradient(180deg, #1A0000 0%, #0a0000 100%)",
+                    boxShadow: "0 20px 60px rgba(0,0,0,0.8), 0 0 0 1px rgba(212,175,55,0.2)",
+                    fontFamily: "system-ui, -apple-system, sans-serif",
                 }}>
                     {/* Header */}
                     <div style={{
-                        padding: "16px 20px",
-                        borderBottom: `1px solid rgba(212,175,55,0.2)`,
-                        background: `linear-gradient(135deg, ${MAROON}, ${MAROON_DARK})`,
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 12,
+                        padding: "14px 18px", display: "flex", alignItems: "center", gap: 10,
+                        borderBottom: "1px solid rgba(212,175,55,0.25)",
+                        background: "linear-gradient(135deg, #2D0000, #1A0000)",
                     }}>
                         <div style={{
-                            width: 40, height: 40, borderRadius: "50%",
-                            background: `linear-gradient(135deg, ${GOLD}, #B8860B)`,
+                            width: 38, height: 38, borderRadius: "50%",
+                            background: "linear-gradient(135deg, #D4AF37, #B8860B)",
                             display: "flex", alignItems: "center", justifyContent: "center",
-                            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
-                        }}>
-                            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={MAROON_DARK} strokeWidth="2"><path d="M12 8V4H8" /><rect x="2" y="2" width="20" height="8" rx="2" /><rect x="6" y="14" width="12" height="8" rx="2" /><path d="M12 10v4" /><path d="M2 22l4-4" /><path d="M22 22l-4-4" /></svg>
-                        </div>
+                            fontSize: 20,
+                        }}>🙏</div>
                         <div style={{ flex: 1 }}>
-                            <div style={{ color: "#fff", fontWeight: 700, fontSize: 14, fontFamily: "serif" }}>Seva Sahayak</div>
-                            <div style={{ color: GOLD, fontSize: 11, fontWeight: 700, letterSpacing: 1.5, textTransform: "uppercase" as const }}>
-                                {lang === "kn" ? "ಸೇವಾ ಸಹಾಯಕ • ಆನ್‌ಲೈನ್" : "Online • Ask me anything"}
+                            <div style={{ color: "#fff", fontWeight: 700, fontSize: 14 }}>Seva Sahayak</div>
+                            <div style={{ color: "#D4AF37", fontSize: 11, fontWeight: 600, letterSpacing: 1 }}>
+                                {lang === "kn" ? "ಸೇವಾ ಸಹಾಯಕ • ಆನ್‌ಲೈನ್" : "Online • Ask anything"}
                             </div>
                         </div>
-                        <button
-                            onClick={() => setLang(lang === "en" ? "kn" : "en")}
+                        <div
+                            onClick={(e) => { e.stopPropagation(); setLang(lang === "en" ? "kn" : "en"); }}
                             style={{
-                                padding: "6px 12px", fontSize: 11, fontWeight: 700,
-                                borderRadius: 20, border: `1px solid rgba(212,175,55,0.3)`,
-                                color: GOLD, background: "transparent", cursor: "pointer",
+                                padding: "5px 10px", fontSize: 11, fontWeight: 700,
+                                borderRadius: 20, border: "1px solid rgba(212,175,55,0.3)",
+                                color: "#D4AF37", cursor: "pointer",
                             }}
-                        >
-                            {lang === "en" ? "ಕನ್ನಡ" : "EN"}
-                        </button>
+                        >{lang === "en" ? "ಕನ್ನಡ" : "EN"}</div>
                     </div>
 
                     {/* Messages */}
                     <div style={{
-                        flex: 1, overflowY: "auto", padding: 16, display: "flex",
-                        flexDirection: "column", gap: 14,
+                        flex: 1, overflowY: "auto", padding: 14,
+                        display: "flex", flexDirection: "column", gap: 12,
                     }}>
                         {msgs.map(m => (
                             <div key={m.id} style={{ display: "flex", justifyContent: m.role === "user" ? "flex-end" : "flex-start" }}>
                                 <div style={{ maxWidth: "85%" }}>
                                     {m.role === "bot" && (
-                                        <div style={{ fontSize: 10, color: GOLD, fontWeight: 700, marginBottom: 4, letterSpacing: 1.5, textTransform: "uppercase" as const }}>
+                                        <div style={{ fontSize: 10, color: "#D4AF37", fontWeight: 700, marginBottom: 3, letterSpacing: 1 }}>
                                             ✨ Seva Sahayak
                                         </div>
                                     )}
                                     <div style={{
-                                        borderRadius: m.role === "user" ? "16px 16px 4px 16px" : "16px 16px 16px 4px",
-                                        padding: "12px 16px", fontSize: 13, lineHeight: 1.6,
-                                        whiteSpace: "pre-line" as const,
-                                        ...(m.role === "user"
-                                            ? { background: GOLD, color: MAROON_DARK, fontWeight: 600 }
-                                            : { background: "rgba(255,255,255,0.05)", color: "rgba(255,255,255,0.9)", border: "1px solid rgba(255,255,255,0.1)" }
-                                        ),
+                                        borderRadius: m.role === "user" ? "14px 14px 3px 14px" : "14px 14px 14px 3px",
+                                        padding: "10px 14px", fontSize: 13, lineHeight: 1.6,
+                                        whiteSpace: "pre-line",
+                                        background: m.role === "user" ? "#D4AF37" : "rgba(255,255,255,0.06)",
+                                        color: m.role === "user" ? "#1A0000" : "rgba(255,255,255,0.9)",
+                                        fontWeight: m.role === "user" ? 600 : 400,
+                                        border: m.role === "bot" ? "1px solid rgba(255,255,255,0.08)" : "none",
                                     }}>
                                         {m.text}
                                     </div>
                                     {m.links && m.links.length > 0 && (
-                                        <div style={{ display: "flex", flexWrap: "wrap" as const, gap: 6, marginTop: 8 }}>
+                                        <div style={{ display: "flex", flexWrap: "wrap", gap: 5, marginTop: 6 }}>
                                             {m.links.map((l, i) => (
                                                 <Link key={i} href={l.href} style={{
-                                                    display: "inline-flex", alignItems: "center", gap: 4,
-                                                    padding: "6px 12px", fontSize: 11, fontWeight: 700,
-                                                    color: GOLD, background: "rgba(212,175,55,0.1)",
-                                                    border: `1px solid rgba(212,175,55,0.2)`,
-                                                    borderRadius: 20, textDecoration: "none",
-                                                    transition: "all 0.2s",
+                                                    display: "inline-block", padding: "5px 10px", fontSize: 11, fontWeight: 700,
+                                                    color: "#D4AF37", background: "rgba(212,175,55,0.1)",
+                                                    border: "1px solid rgba(212,175,55,0.2)",
+                                                    borderRadius: 16, textDecoration: "none",
                                                 }}>
                                                     {l.label} →
                                                 </Link>
@@ -384,104 +258,66 @@ export function ChatbotWidget() {
                                 </div>
                             </div>
                         ))}
-
-                        {/* Typing dots */}
                         {typing && (
                             <div style={{ display: "flex", justifyContent: "flex-start" }}>
                                 <div style={{
-                                    background: "rgba(255,255,255,0.05)",
-                                    border: "1px solid rgba(255,255,255,0.1)",
-                                    borderRadius: "16px 16px 16px 4px",
-                                    padding: "12px 16px",
-                                    display: "flex", gap: 6,
-                                }}>
-                                    {[0, 1, 2].map(i => (
-                                        <span key={i} style={{
-                                            width: 8, height: 8, borderRadius: "50%", background: GOLD,
-                                            animation: `dotBounce 1.4s infinite ${i * 160}ms`,
-                                            display: "inline-block",
-                                        }} />
-                                    ))}
-                                </div>
+                                    background: "rgba(255,255,255,0.06)", border: "1px solid rgba(255,255,255,0.08)",
+                                    borderRadius: "14px 14px 14px 3px", padding: "10px 14px",
+                                    color: "#D4AF37", fontSize: 20, letterSpacing: 4,
+                                }}>...</div>
                             </div>
                         )}
-                        <div ref={bottomRef} />
+                        <div ref={endRef} />
                     </div>
 
                     {/* Quick Actions */}
                     {msgs.length <= 1 && (
-                        <div style={{ padding: "0 16px 8px", display: "flex", flexWrap: "wrap" as const, gap: 6 }}>
-                            {quicks.map((a, i) => (
-                                <button key={i} onClick={() => send(a.q)} style={{
-                                    padding: "6px 12px", fontSize: 11, fontWeight: 700,
-                                    color: "rgba(255,255,255,0.8)", background: "rgba(255,255,255,0.05)",
-                                    border: "1px solid rgba(255,255,255,0.1)", borderRadius: 20,
-                                    cursor: "pointer", transition: "all 0.2s",
-                                }}
-                                    onMouseEnter={e => {
-                                        e.currentTarget.style.color = GOLD;
-                                        e.currentTarget.style.borderColor = "rgba(212,175,55,0.3)";
-                                        e.currentTarget.style.background = "rgba(212,175,55,0.1)";
-                                    }}
-                                    onMouseLeave={e => {
-                                        e.currentTarget.style.color = "rgba(255,255,255,0.8)";
-                                        e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)";
-                                        e.currentTarget.style.background = "rgba(255,255,255,0.05)";
-                                    }}
-                                >
-                                    {a.label}
-                                </button>
+                        <div style={{ padding: "0 14px 8px", display: "flex", flexWrap: "wrap", gap: 5 }}>
+                            {quicks.map((q, i) => (
+                                <div key={i} onClick={() => send(q.replace(/^[^\s]+\s/, ""))} style={{
+                                    padding: "5px 10px", fontSize: 11, fontWeight: 600,
+                                    color: "rgba(255,255,255,0.75)", background: "rgba(255,255,255,0.06)",
+                                    border: "1px solid rgba(255,255,255,0.1)", borderRadius: 16,
+                                    cursor: "pointer",
+                                }}>{q}</div>
                             ))}
                         </div>
                     )}
 
                     {/* Input */}
                     <div style={{
-                        padding: "12px 16px",
-                        borderTop: `1px solid rgba(212,175,55,0.2)`,
-                        background: `linear-gradient(135deg, ${MAROON}, ${MAROON_DARK})`,
+                        padding: "10px 14px",
+                        borderTop: "1px solid rgba(212,175,55,0.25)",
+                        background: "linear-gradient(135deg, #2D0000, #1A0000)",
+                        display: "flex", gap: 8, alignItems: "center",
                     }}>
-                        <form onSubmit={e => { e.preventDefault(); send(); }} style={{ display: "flex", gap: 8, alignItems: "center" }}>
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                value={input}
-                                onChange={e => setInput(e.target.value)}
-                                placeholder={lang === "kn" ? "ಇಲ್ಲಿ ಟೈಪ್ ಮಾಡಿ..." : "Type your message..."}
-                                style={{
-                                    flex: 1, background: "rgba(255,255,255,0.05)",
-                                    border: "1px solid rgba(255,255,255,0.1)",
-                                    borderRadius: 24, padding: "10px 16px", fontSize: 13,
-                                    color: "#fff", outline: "none",
-                                }}
-                                onFocus={e => e.currentTarget.style.borderColor = "rgba(212,175,55,0.5)"}
-                                onBlur={e => e.currentTarget.style.borderColor = "rgba(255,255,255,0.1)"}
-                            />
-                            <button type="submit" disabled={!input.trim()} style={{
-                                width: 40, height: 40, borderRadius: "50%",
-                                background: input.trim() ? GOLD : "rgba(212,175,55,0.3)",
-                                border: "none", cursor: input.trim() ? "pointer" : "default",
+                        <input
+                            ref={inputRef}
+                            type="text"
+                            value={input}
+                            onChange={e => setInput(e.target.value)}
+                            onKeyDown={e => { if (e.key === "Enter") send(); }}
+                            placeholder={lang === "kn" ? "ಇಲ್ಲಿ ಟೈಪ್ ಮಾಡಿ..." : "Type your message..."}
+                            style={{
+                                flex: 1, background: "rgba(255,255,255,0.06)",
+                                border: "1px solid rgba(255,255,255,0.1)",
+                                borderRadius: 20, padding: "9px 14px", fontSize: 13,
+                                color: "#fff", outline: "none",
+                            }}
+                        />
+                        <div
+                            onClick={() => send()}
+                            style={{
+                                width: 38, height: 38, borderRadius: "50%",
+                                background: input.trim() ? "#D4AF37" : "rgba(212,175,55,0.3)",
                                 display: "flex", alignItems: "center", justifyContent: "center",
-                                transition: "all 0.2s",
-                            }}>
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={MAROON_DARK} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="22" y1="2" x2="11" y2="13" /><polygon points="22 2 15 22 11 13 2 9 22 2" /></svg>
-                            </button>
-                        </form>
+                                cursor: input.trim() ? "pointer" : "default",
+                                fontSize: 16, color: "#1A0000",
+                            }}
+                        >▶</div>
                     </div>
                 </div>
             )}
-
-            {/* CSS Animations */}
-            <style>{`
-        @keyframes chatFadeIn {
-          from { opacity:0; transform:translateY(20px) scale(0.95); }
-          to   { opacity:1; transform:translateY(0) scale(1); }
-        }
-        @keyframes dotBounce {
-          0%,80%,100% { transform:scale(0); }
-          40% { transform:scale(1); }
-        }
-      `}</style>
-        </>
+        </div>
     );
 }

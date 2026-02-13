@@ -56,15 +56,24 @@ export default function ContactPage() {
                         </CardContent>
                     </Card>
 
-                    <div className="h-full min-h-[400px] glass-card rounded-2xl overflow-hidden border border-gold-500/20 text-center flex flex-col items-center justify-center p-12 bg-maroon-950/50 shadow-inner group">
-                        <div className="w-24 h-24 mb-6 rounded-full bg-gold-500/5 border border-gold-500/20 flex items-center justify-center text-gold-500 group-hover:scale-110 transition-transform duration-700">
-                            <MapPin className="w-12 h-12 opacity-50" />
+                    <div className="h-full min-h-[500px] glass-card rounded-2xl overflow-hidden border border-gold-500/20 shadow-2xl relative group">
+                        <iframe
+                            src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d1136.5413349694464!2d74.75549069501533!3d13.339243450942008!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bbca4a595555555%3A0xe5f9b4f0b26b48a0!2sSri%20Sode%20Vadiraja%20Matha!5e0!3m2!1sen!2sin!4v1707810000000!5m2!1sen!2sin"
+                            width="100%"
+                            height="100%"
+                            style={{ border: 0, filter: 'grayscale(0.3) contrast(1.1) brightness(0.9)' }}
+                            allowFullScreen
+                            loading="lazy"
+                            referrerPolicy="no-referrer-when-downgrade"
+                            className="absolute inset-0 grayscale-[20%] sepia-[10%] group-hover:grayscale-0 group-hover:sepia-0 transition-all duration-700"
+                        />
+                        <div className="absolute inset-0 pointer-events-none border-[12px] border-maroon-950/20 shadow-inner"></div>
+                        <div className="absolute top-6 right-6 pointer-events-none">
+                            <div className="bg-maroon-950/80 backdrop-blur-md border border-gold-500/30 p-4 rounded-xl shadow-2xl animate-fade-in">
+                                <p className="text-gold-500 font-black uppercase tracking-[0.2em] text-[10px] mb-1 text-center">Location Identified</p>
+                                <p className="text-white font-serif font-bold text-sm text-center">Sri Sode Matha, Udupi</p>
+                            </div>
                         </div>
-                        <h3 className="text-2xl font-serif font-bold text-white mb-4">Temple Location Guide</h3>
-                        <p className="text-white/60 mb-8 max-w-xs mx-auto text-sm leading-relaxed">Visualize your spiritual journey to Sode Matha. Our location is at the spiritual heart of Udupi.</p>
-                        <Button variant="outline" className="border-gold-500/30 text-gold-400 hover:bg-gold-500 hover:text-maroon-950 px-8 py-6 rounded-full transition-all uppercase tracking-widest font-bold text-xs">
-                            View on Google Maps
-                        </Button>
                     </div>
                 </div>
             </main>

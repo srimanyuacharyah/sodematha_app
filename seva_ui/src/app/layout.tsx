@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "sonner";
 import { AuthProvider } from "@/context/auth-context";
 import { LanguageProvider } from "@/context/language-context";
+import { ChatbotWidget } from "@/components/ChatbotWidget";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -35,17 +36,11 @@ export default function RootLayout({
           <AuthProvider>
             {children}
             <Toaster position="top-center" richColors />
-
-            {/* Chatbase Integration */}
-            <script
-              src="https://www.chatbase.co/embed.min.js"
-              defer
-              data-chatbot-id="your-chatbot-id" // Placeholder
-              data-domain="www.chatbase.co"
-            ></script>
+            <ChatbotWidget />
           </AuthProvider>
         </LanguageProvider>
       </body>
     </html>
   );
 }
+

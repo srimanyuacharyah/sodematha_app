@@ -3,15 +3,15 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 
 interface AuthContextType {
-    user: { name: string; phone: string } | null;
-    login: (phone: string, name: string) => void;
+    user: { name: string; phone: string; email: string } | null;
+    login: (email: string, name: string) => void;
     logout: () => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-    const [user, setUser] = useState<{ name: string; phone: string } | null>(null);
+    const [user, setUser] = useState<{ name: string; phone: string; email: string } | null>(null);
 
     useEffect(() => {
         // Check local storage on mount
@@ -21,8 +21,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         }
     }, []);
 
-    const login = (phone: string, name: string) => {
-        const newUser = { name, phone };
+    const login = (email: string, name: string) => {
+        const newUser = { name, email, phone: "" }; // Phone optional for now
         setUser(newUser);
         localStorage.setItem("sode_user", JSON.stringify(newUser));
     };

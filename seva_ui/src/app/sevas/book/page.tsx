@@ -111,6 +111,7 @@ function BookingFormContent() {
 
             // Call Payment API to send real email
             try {
+                // 1. Send Confirmation Email
                 await fetch("http://localhost:8080/api/payment", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -122,8 +123,19 @@ function BookingFormContent() {
                         username: formData.name
                     }),
                 });
+
+                // 2. Save Booking to Backend Database
+                await fetch("http://localhost:8080/api/bookings", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        email: formData.email,
+                        sevaId: selectedSeva.id,
+                        transactionId: "TX-" + Date.now()
+                    }),
+                });
             } catch (err) {
-                console.error("Payment API/Email Failed", err);
+                console.error("Backend Sync Failed", err);
             }
         } else {
             setIsSubmitting(false);

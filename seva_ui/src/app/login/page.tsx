@@ -62,9 +62,8 @@ export default function LoginPage() {
         e.preventDefault();
         setIsLoading(true);
 
-        // Mock login - in real app, verify OTP on server
         try {
-            await login(email, "password");
+            await login(email, name || email);
             toast.success("Login successful!");
             router.push("/");
         } catch (error) {

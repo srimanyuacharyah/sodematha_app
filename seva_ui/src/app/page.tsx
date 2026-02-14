@@ -56,6 +56,59 @@ export default function Home() {
         {/* Education Institutions (NEW) */}
         <EducationSection />
 
+        {/* About Sode Matha Section (ENHANCED) */}
+        <section className="container mx-auto px-4 py-32 bg-maroon-950/20 relative">
+          <div className="flex flex-col md:flex-row items-center gap-16">
+            <div className="w-full md:w-1/2 relative group">
+              <div className="absolute -inset-4 bg-gold-500/20 blur-2xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity"></div>
+              {/* Swamiji Image Placeholder with high-quality styling */}
+              <div className="relative aspect-square rounded-3xl overflow-hidden border-2 border-gold-500/30 shadow-[0_20px_60px_rgba(0,0,0,0.8)]">
+                <div className="absolute inset-0 bg-gradient-to-t from-maroon-950 via-transparent to-transparent z-10"></div>
+                <div className="absolute inset-0 flex items-center justify-center text-gold-500/20 font-serif text-8xl italic select-none">Sode</div>
+                <div className="absolute bottom-10 left-10 z-20">
+                  <h3 className="text-3xl font-serif font-bold text-white uppercase tracking-wider">Sri Vishwavallabha Teertha</h3>
+                  <p className="text-gold-500 font-black uppercase tracking-[0.2em] text-xs mt-2">36th Pontiff of Sri Sode Vadiraja Matha</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="w-full md:w-1/2 space-y-8">
+              <div className="space-y-4">
+                <span className="text-gold-500 font-bold uppercase tracking-[0.4em] text-sm">Divine Heritage</span>
+                <h2 className="text-5xl md:text-6xl font-serif font-bold text-white uppercase leading-tight">700 Years of Spiritual Legacy</h2>
+                <div className="h-1 w-24 bg-gold-500"></div>
+              </div>
+
+              <p className="text-xl text-white/80 leading-relaxed font-sans italic border-l-4 border-gold-500 pl-8">
+                "Sri Sode Vadiraja Matha, established by Sri Madhvacharya and significantly developed by the great saint Sri Vadiraja Teertha, stands as a beacon of the Madhwa tradition."
+              </p>
+
+              <div className="grid grid-cols-2 gap-8 pt-4">
+                <div>
+                  <h4 className="text-gold-400 font-bold uppercase tracking-widest text-xs mb-3 underline decoration-gold-500/20 underline-offset-8">Sacred Sites</h4>
+                  <ul className="space-y-2 text-sm text-white/60 font-medium">
+                    <li>• Rama Thrivikrama Temple</li>
+                    <li>• Hayagriva Samudra</li>
+                    <li>• Pancha Vrindavans</li>
+                  </ul>
+                </div>
+                <div>
+                  <h4 className="text-gold-400 font-bold uppercase tracking-widest text-xs mb-3 underline decoration-gold-500/20 underline-offset-8">Traditions</h4>
+                  <ul className="space-y-2 text-sm text-white/60 font-medium">
+                    <li>• Madhwa Philosophy</li>
+                    <li>• Chandramana Panchanga</li>
+                    <li>• Gurukula Education</li>
+                  </ul>
+                </div>
+              </div>
+
+              <Button asChild variant="outline" className="border-gold-500/30 text-gold-500 hover:bg-gold-500 hover:text-maroon-950 transition-all rounded-full px-10 py-6 font-bold uppercase tracking-widest text-xs">
+                <Link href="/history">Explore Full History</Link>
+              </Button>
+            </div>
+          </div>
+        </section>
+
         {/* Latest News & Events Section - Dark High Contrast */}
         <section className="container mx-auto px-4 py-32">
           <div className="text-center mb-24">

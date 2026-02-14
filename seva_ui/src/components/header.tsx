@@ -60,8 +60,12 @@ export function Header() {
                 <div className="container mx-auto px-4">
                     <nav className="flex flex-col md:flex-row items-center justify-center gap-8 py-3 md:py-4 text-sm font-bold relative">
                         <Link href="/sevas" className="hover:text-gold-400 transition-colors uppercase tracking-[0.1em]">{t.nav.home}</Link>
+                        <Link href="/panchanga" className="hover:text-gold-400 transition-colors uppercase tracking-[0.1em]">{language === 'kn' ? 'ಪಂಚಾಂಗ' : language === 'sa' ? 'पञ्चाङ्गम्' : 'Panchanga'}</Link>
                         <Link href="/history" className="hover:text-gold-400 transition-colors uppercase tracking-[0.1em]">{t.nav.history}</Link>
                         <Link href="/sevas" className="hover:text-gold-400 transition-colors uppercase tracking-[0.1em]">{t.nav.sevas}</Link>
+                        {user && (
+                            <Link href="/bookings" className="hover:text-gold-400 transition-colors uppercase tracking-[0.1em]">{language === 'kn' ? 'ನನ್ನ ಬುಕಿಂಗ್' : 'My Bookings'}</Link>
+                        )}
                         <Link href="/gallery" className="hover:text-gold-400 transition-colors uppercase tracking-[0.1em]">{t.nav.gallery}</Link>
                         <Link href="/contact" className="hover:text-gold-400 transition-colors hidden md:block uppercase tracking-[0.1em]">{t.nav.contact}</Link>
 

@@ -1,98 +1,58 @@
-[![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/Op9BxO3Q)
-# hackathon-starter (Seva Platform)
+# Sode Matha Seva Platform
 
-Hackathon Starter Repo
+Seva Platform is a modern, scalable, full-stack application designed to serve web users and backend services through a secure and modular architecture.
 
-Seva Platform is a modern, scalable, full-stack application designed to serve mobile users, web users, and backend services through a secure and modular architecture.
+## High-Level Architecture
 
-This repository is the **starter blueprint** for the Seva Platform. It defines:
-- What the project is
-- How the repository is organized
-- What technologies (latest stable) should be used
-- The standard directory structure each module must follow
-
-The platform consists of:
-- A **mobile application** for Android and iOS
-- A **web application** for browser-based access
-- A **backend platform** providing APIs, business logic, and data persistence
-
-
-All components communicate through secure REST APIs and follow cloud-ready, production-grade design principles.
-
+Both Web and Mobile clients communicate with the backend APIs.
 
 ```text
-.
-├── seva_mobile/        # React Native mobile application
-├── seva_ui/            # Web UI application (React or Angular)
-├── seva_platform/      # Backend platform (Java + Spring Boot)
-└── README.md           # Project documentation
+Web UI (Next.js) ───> Backend APIs (Spring Boot) ───> Database (H2/MySQL)
+```
+
+## Getting Started
+
+### Prerequisites
+- **Java 17**: Required for the backend platform.
+- **Node.js 18+**: Required for the web UI.
+- **Maven**: For building the Java backend (included in `seva_platform` for this device).
+
+---
+
+### 1. Run the Backend (Seva Platform)
+
+**On this device:**
+```powershell
+cd seva_platform
+# Build the project
+.\apache-maven-3.9.9\bin\mvn.cmd clean package -DskipTests
+# Run the application
+& 'C:\Program Files\Microsoft\jdk-17.0.18.8-hotspot\bin\java.exe' -jar target/platform-0.0.1-SNAPSHOT.jar
+```
+
+**On a new device:**
+```bash
+cd seva_platform
+mvn clean package -DskipTests
+java -jar target/platform-0.0.1-SNAPSHOT.jar
 ```
 
 ---
 
-## High-Level Architecture
+### 2. Run the Frontend (Seva UI)
 
-> Both Mobile and Web clients communicate only with the backend APIs (clients do not talk to the database directly).
-
-```text
-Mobile App (React Native) ──┐
-                            ├──> Backend APIs (Spring Boot) ───> Database (MySQL 8.x)
-Web UI (React / Angular) ───┘
+**On any device:**
+```bash
+cd seva_ui
+# Install dependencies (first time only)
+npm install
+# Run in development mode
+npm run dev
 ```
 
+The application will be available at [http://localhost:3000](http://localhost:3000) and the backend APIs at [http://localhost:8080](http://localhost:8080).
 
-# Application project structre to be followed
-
-seva_mobile/
-├── android/                 # Android native project
-├── ios/                     # iOS native project
-├── src/
-│   ├── components/          # Reusable UI components
-│   ├── screens/             # App screens
-│   ├── navigation/          # Navigation setup
-│   ├── services/            # API services
-│   ├── store/               # State management
-│   ├── hooks/               # Custom hooks
-│   ├── utils/               # Utilities
-│   └── assets/              # Images, fonts, icons
-├── .env
-├── package.json
-└── tsconfig.json
-
-
-seva_ui/
-├── src/
-│   ├── components/          # Shared UI components
-│   ├── pages/               # Route-based pages
-│   ├── layouts/             # App layouts
-│   ├── services/            # API clients
-│   ├── hooks/               # Custom hooks
-│   ├── utils/               # Helper utilities
-│   └── assets/              # Static assets
-├── public/
-├── .env
-├── package.json
-└── tsconfig.json
-
-
-seva_platform/
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── com/seva/platform/
-│   │   │       ├── controller/     # REST controllers
-│   │   │       ├── service/        # Business logic
-│   │   │       ├── repository/     # Database repositories
-│   │   │       ├── model/          # Entity models
-│   │   │       ├── dto/            # Request/response DTOs
-│   │   │       ├── security/       # Authentication & security
-│   │   │       └── config/         # Configuration classes
-│   │   └── resources/
-│   │       ├── application.yml
-│   │       ├── application-dev.yml
-│   │       ├── application-prod.yml
-│   │       └── db/migration/       # Flyway migrations
-│   └── test/
-├── Dockerfile
-├── pom.xml / build.gradle
-└── README.md
+## Project Structure
+- `seva_ui/`: Next.js frontend application.
+- `seva_platform/`: Spring Boot backend platform.
+- `seva_mobile/`: React Native mobile blueprint (Phase 2).

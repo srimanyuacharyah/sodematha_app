@@ -4,6 +4,8 @@ import { useState, useEffect } from "react";
 import { Mic, MicOff, Volume2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
+import { useRouter } from "next/navigation";
+import { reply } from "@/lib/chatbot-logic";
 
 export function VoiceAssistant() {
     const [isListening, setIsListening] = useState(false);
@@ -20,13 +22,21 @@ export function VoiceAssistant() {
 
             recog.onresult = (event: any) => {
                 const transcript = event.results[0][0].transcript.toLowerCase();
+                console.log("Transcript received:", transcript);
                 handleVoiceCommand(transcript);
                 setIsListening(false);
             };
 
-            recog.onerror = () => {
+            recog.onerror = (event: any) => {
+                console.error("Speech recognition error", event.error);
                 setIsListening(false);
-                toast.error("Voice recognition error.");
+                if (event.error === "not-allowed") {
+                    toast.error("Microphone access denied. Please enable it in your browser settings to use voice features.");
+                } else if (event.error === "no-speech") {
+                    // Silence usually happens if user doesn't say anything, just reset
+                } else {
+                    toast.error("Voice error: " + (event.error || "Unknown"));
+                }
             };
 
             recog.onend = () => {
@@ -34,6 +44,9 @@ export function VoiceAssistant() {
             };
 
             setRecognition(recog);
+        } else {
+            console.error("Speech Recognition API not supported in this browser.");
+            toast.error("Voice features not supported in this browser. Try Chrome/Edge.");
         }
     }, []);
 
@@ -47,18 +60,26 @@ export function VoiceAssistant() {
         }
     };
 
+    const router = useRouter();
+
     const handleVoiceCommand = (command: string) => {
         console.log("Voice Command:", command);
-        if (command.includes("hello") || command.includes("namaste")) {
-            speak("Namaste! Welcome to Sri Sode Vadiraja Matha. How can I assist you today?");
-        } else if (command.includes("seva") || command.includes("book")) {
-            speak("You can book various sevas in the Sevas section. Would you like me to take you there?");
-        } else if (command.includes("history") || command.includes("about")) {
-            speak("Sri Sode Vadiraja Matha was established by Sri Madhvacharya and flourished under Sri Vadiraja Teertha.");
+        const response = reply(command);
+
+        if (response && response.text) {
+            speak(response.text);
         } else {
-            speak("I heard: " + command + ". I am learning to serve you better.");
+            console.error("Invalid response from chatbot logic", response);
         }
-        toast("Voiced: " + command);
+
+        // Auto-navigate if command present
+        if (response.links && response.links.length > 0) {
+            const link = response.links[0];
+            toast("Navigating to: " + link.label);
+            setTimeout(() => {
+                router.push(link.href);
+            }, 800);
+        }
     };
 
     const toggleListening = () => {

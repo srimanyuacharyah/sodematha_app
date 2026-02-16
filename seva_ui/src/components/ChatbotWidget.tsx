@@ -11,98 +11,9 @@ interface ChatMsg {
     links?: { label: string; href: string }[];
 }
 
-/* ── Knowledge Base ── */
-const SEVAS = [
-    { n: "One Day Sampurna Seva", k: "ಒಂದು ದಿನದ ಸಂಪೂರ್ಣ ಸೇವೆ", a: 5001, d: "Complete seva for one full day including Annadana.", dk: "ಅನ್ನದಾನ ಸೇರಿದಂತೆ ಒಂದು ಪೂರ್ಣ ದಿನದ ಸಂಪೂರ್ಣ ಸೇವೆ." },
-    { n: "Maha Sarvaseva", k: "ಮಹಾ ಸರ್ವಸೇವೆ", a: 1500, d: "Special pooja and offering to the deity.", dk: "ದೇವರಿಗೆ ವಿಶೇಷ ಪೂಜೆ ಮತ್ತು ನೈವೇದ್ಯ." },
-    { n: "Nanda Deepa (One Year)", k: "ನಂದಾ ದೀಪ (ಒಂದು ವರ್ಷ)", a: 1200, d: "Eternal lamp for one year in your name.", dk: "ನಿಮ್ಮ ಹೆಸರಿನಲ್ಲಿ ನಂದಾದೀಪ." },
-    { n: "Alankara Pooja", k: "ಅಲಂಕಾರ ಪೂಜೆ", a: 501, d: "Decoration of the deity with flowers.", dk: "ಹೂವುಗಳಿಂದ ದೇವರ ಅಲಂಕಾರ." },
-    { n: "Panchamrutha Abhisheka", k: "ಪಂಚಾಮೃತ ಅಭಿಷೇಕ", a: 1001, d: "Abhisheka with five sacred liquids.", dk: "ಐದು ಪವಿತ್ರ ದ್ರವಗಳಿಂದ ಅಭಿಷೇಕ." },
-    { n: "General Kanike", k: "ಸಾಮಾನ್ಯ ಕಾಣಿಕೆ", a: 100, d: "General contribution to the Matha.", dk: "ಮಠಕ್ಕೆ ಸಾಮಾನ್ಯ ಕಾಣಿಕೆ." },
-];
+import { isKn, reply, ChatResponse } from "@/lib/chatbot-logic";
 
-function isKn(t: string) { return /[\u0C80-\u0CFF]/.test(t); }
-
-function reply(input: string): { text: string; links?: { label: string; href: string }[] } {
-    const lo = input.toLowerCase();
-    const kn = isKn(input);
-
-    if (/^(hi|hello|hey|namaste|namaskara|ನಮಸ್ಕಾರ|ಹಾಯ್|ಹಲೋ|ನಮಸ್ತೆ)/i.test(lo))
-        return {
-            text: kn ? "🙏 ನಮಸ್ಕಾರ! ಶ್ರೀ ಸೋದೆ ವಾದಿರಾಜ ಮಠದ ಸೇವಾ ಸಹಾಯಕಕ್ಕೆ ಸ್ವಾಗತ.\nಸೇವೆಗಳು, ಇತಿಹಾಸ, ದರ್ಶನ ಸಮಯ ಬಗ್ಗೆ ಕೇಳಿ!"
-                : "🙏 Namaste! Welcome to Sri Sode Vadiraja Matha.\nAsk me about Sevas, history, darshan timings & more!",
-            links: [{ label: kn ? "ಸೇವೆಗಳು" : "View Sevas", href: "/sevas" }, { label: kn ? "ಇತಿಹಾಸ" : "History", href: "/history" }]
-        };
-
-    if (/book|ಬುಕ್|reserve|how to.*seva/i.test(lo))
-        return {
-            text: kn ? "ಸೇವೆ ಬುಕ್ ಮಾಡಲು:\n1️⃣ ಸೇವೆಗಳು ಪುಟಕ್ಕೆ ಹೋಗಿ\n2️⃣ ಸೇವೆ ಆಯ್ಕೆ ಮಾಡಿ\n3️⃣ Book Seva ಕ್ಲಿಕ್ ಮಾಡಿ"
-                : "To book:\n1️⃣ Go to Sevas page\n2️⃣ Choose a seva\n3️⃣ Click Book Seva\n4️⃣ Fill details & pay",
-            links: [{ label: kn ? "ಸೇವೆ ಬುಕ್" : "Book Seva", href: "/sevas" }]
-        };
-
-    if (/seva|pooja|puja|ಸೇವೆ|ಪೂಜೆ|service|ritual|offering/i.test(lo)) {
-        const l = SEVAS.map(s => "• " + (kn ? s.k : s.n) + " — ₹" + s.a).join("\n");
-        return { text: (kn ? "ಲಭ್ಯ ಸೇವೆಗಳು:\n\n" : "Available Sevas:\n\n") + l, links: [{ label: kn ? "ಸೇವೆಗಳು" : "View Sevas", href: "/sevas" }] };
-    }
-
-    if (/time|timing|darshan|ದರ್ಶನ|ಸಮಯ|when|open|schedule/i.test(lo))
-        return {
-            text: kn ? "🕐 ದರ್ಶನ ಸಮಯ:\n\n🛕 ಸೋದೆ ಮಠ:\n  ಬೆಳಗ್ಗೆ: 5:00 AM – 1:00 PM\n  ಸಂಜೆ: 4:00 PM – 8:30 PM\n\n🛕 ಉಡುಪಿ ಕೃಷ್ಣ ಮಠ:\n  ಬೆಳಗ್ಗೆ: 4:30 AM – 1:30 PM\n  ಸಂಜೆ: 4:00 PM – 9:00 PM"
-                : "🕐 Darshan Timings:\n\n🛕 Sode Matha:\n  Morning: 5:00 AM – 1:00 PM\n  Evening: 4:00 PM – 8:30 PM\n\n🛕 Udupi Krishna Matha:\n  Morning: 4:30 AM – 1:30 PM\n  Evening: 4:00 PM – 9:00 PM"
-        };
-
-    if (/history|about|ಇತಿಹಾಸ|ಮಠ|matha|vadiraja|ವಾದಿರಾಜ|sode|ಸೋದೆ/i.test(lo))
-        return {
-            text: kn ? "🏛️ ಶ್ರೀ ಸೋದೆ ವಾದಿರಾಜ ಮಠ ಉಡುಪಿ ಅಷ್ಟಮಠಗಳಲ್ಲಿ ಒಂದು. 700+ ವರ್ಷ ಪರಂಪರೆ."
-                : "🏛️ Sri Sode Vadiraja Matha is one of the Eight Mathas in Udupi. 700+ years of heritage.",
-            links: [{ label: kn ? "ಇತಿಹಾಸ" : "History", href: "/history" }]
-        };
-
-    if (/donat|kanike|ಕಾಣಿಕೆ|ದಾನ|contribute/i.test(lo))
-        return {
-            text: kn ? "🙏 ₹100 ರಿಂದ ಕಾಣಿಕೆ ಕೊಡಿ." : "🙏 Donate starting at ₹100.",
-            links: [{ label: kn ? "ಕಾಣಿಕೆ" : "Donate", href: "/sevas/book?sevaId=6" }]
-        };
-
-    if (/gallery|photo|ಗ್ಯಾಲರಿ|ಫೋಟೋ|pic/i.test(lo))
-        return {
-            text: kn ? "📸 ಗ್ಯಾಲರಿ ನೋಡಿ" : "📸 Explore our gallery",
-            links: [{ label: kn ? "ಗ್ಯಾಲರಿ" : "Gallery", href: "/gallery" }]
-        };
-
-    if (/contact|address|ಸಂಪರ್ಕ|ವಿಳಾಸ|where|phone/i.test(lo))
-        return {
-            text: kn ? "📍 ಶ್ರೀ ಸೋದೆ ವಾದಿರಾಜ ಮಠ, ಉಡುಪಿ, ಕರ್ನಾಟಕ" : "📍 Sri Sode Vadiraja Matha, Udupi, Karnataka",
-            links: [{ label: kn ? "ಸಂಪರ್ಕ" : "Contact", href: "/contact" }]
-        };
-
-    if (/login|account|sign|ಲಾಗಿನ್|ಖಾತೆ|otp/i.test(lo))
-        return {
-            text: kn ? "🔐 ಇಮೇಲ್ ಬಳಸಿ OTP ಲಾಗಿನ್ ಮಾಡಿ." : "🔐 Login using email OTP.",
-            links: [{ label: kn ? "ಲಾಗಿನ್" : "Login", href: "/login" }]
-        };
-
-    if (/price|cost|amount|ಬೆಲೆ|ದರ|how much|ಎಷ್ಟು/i.test(lo)) {
-        const l = SEVAS.map(s => "• " + (kn ? s.k : s.n) + " — ₹" + s.a).join("\n");
-        return { text: (kn ? "💰 ಸೇವೆ ದರ:\n\n" : "💰 Prices:\n\n") + l, links: [{ label: kn ? "ಬುಕ್" : "Book Seva", href: "/sevas" }] };
-    }
-
-    if (/feature|what can|help|ಸಹಾಯ|app/i.test(lo))
-        return {
-            text: kn ? "✨ ಸೇವೆ ಬುಕಿಂಗ್, ಇತಿಹಾಸ, ಗ್ಯಾಲರಿ, ದರ್ಶನ ಸಮಯ, ಸಂಪರ್ಕ, OTP ಲಾಗಿನ್, ಕಾಣಿಕೆ — ಎಲ್ಲ ಲಭ್ಯ!" : "✨ Seva booking, History, Gallery, Darshan timings, Contact, OTP Login, Donate — all available!",
-            links: [{ label: kn ? "ಸೇವೆಗಳು" : "Sevas", href: "/sevas" }, { label: kn ? "ಇತಿಹಾಸ" : "History", href: "/history" }]
-        };
-
-    if (/thank|ಧನ್ಯವಾದ/i.test(lo))
-        return { text: kn ? "🙏 ಧನ್ಯವಾದಗಳು!" : "🙏 Thank you! May Sri Vadiraja bless you." };
-
-    return {
-        text: kn ? "🙏 ಕ್ಷಮಿಸಿ. ಸೇವೆಗಳು, ಸಮಯ, ಇತಿಹಾಸ, ಕಾಣಿಕೆ ಬಗ್ಗೆ ಕೇಳಿ."
-            : "🙏 Try asking about: Sevas, Timings, History, Gallery, Donate, Contact, Login",
-        links: [{ label: kn ? "ಸೇವೆಗಳು" : "Sevas", href: "/sevas" }]
-    };
-}
+/* ── Logic Moved to @/lib/chatbot-logic ── */
 
 /* ── Component ── */
 export function ChatbotWidget() {
@@ -140,7 +51,12 @@ export function ChatbotWidget() {
         setTyping(true);
         setTimeout(() => {
             const r = reply(t);
-            setMsgs(p => [...p, { id: Date.now() + "b", role: "bot", text: r.text, links: r.links }]);
+            setMsgs(p => [...p, {
+                id: Date.now() + "b",
+                role: "bot",
+                text: r?.text || "🙏 Namaste. I am currently focusing on my prayers. Please try again in a moment.",
+                links: r?.links
+            }]);
             setTyping(false);
         }, 600);
     }

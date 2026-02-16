@@ -1,0 +1,19 @@
+# System Files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+.vscode/
+
+# Build Artifacts
+**/target/
+**/build/
+**/dist/
+**/node_modules/
+**/.next/
+**/.vercel/
+**/coverage/
+
+# Logs
+**/*.log

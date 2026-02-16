@@ -8,6 +8,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/api/panchanga")
+@CrossOrigin(origins = "*")
 public class PanchangaController {
 
     @Autowired

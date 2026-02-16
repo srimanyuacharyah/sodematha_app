@@ -41,13 +41,37 @@ export default function BookingsPage() {
     const fetchBookings = async () => {
         setLoading(true);
         try {
-            const res = await fetch(`http://localhost:8080/api/bookings?email=${user?.email}`);
-            if (res.ok) {
-                const data = await res.json();
-                setBookings(data);
+            // 1. Fetch Seva Bookings from API (if backend is running)
+            let apiBookings: Booking[] = [];
+            try {
+                const res = await fetch(`http://localhost:8080/api/bookings?email=${user?.email}`);
+                if (res.ok) {
+                    apiBookings = await res.json();
+                }
+            } catch (e) {
+                console.warn("Backend not reachable, using local data only.");
             }
+
+            // 2. Fetch Room Bookings from LocalStorage (Mock)
+            const localRooms = JSON.parse(localStorage.getItem("room_bookings") || "[]").map((r: any) => ({
+                id: r.id,
+                userEmail: user?.email || "",
+                seva: {
+                    id: 0, // Mock ID for room
+                    name: r.name,
+                    description: `Room Booking for ${r.date}`,
+                    price: r.price
+                },
+                bookingDate: r.date, // Note: API uses ISO string, this might be YYYY-MM-DD
+                status: r.status,
+                transactionId: r.transactionId
+            }));
+
+            // Combine
+            setBookings([...localRooms, ...apiBookings]);
+
         } catch (error) {
-            console.error("Failed to fetch bookings", error);
+            // console.error("Failed to fetch bookings", error);
             toast.error("Could not load bookings. Please try again later.");
         } finally {
             setLoading(false);
@@ -56,12 +80,73 @@ export default function BookingsPage() {
 
     const handleRefundRequest = async (id: number) => {
         try {
+            // Check if it's a local room booking
+            const localRooms = JSON.parse(localStorage.getItem("room_bookings") || "[]");
+            const roomIndex = localRooms.findIndex((r: any) => r.id === id);
+
+            if (roomIndex !== -1) {
+                // It's a room booking
+                const room = localRooms[roomIndex];
+
+                // Update status locally
+                localRooms[roomIndex].status = "REFUND_PENDING";
+                localStorage.setItem("room_bookings", JSON.stringify(localRooms));
+
+                // Refresh list
+                fetchBookings();
+                toast.success("Refund request submitted for Room Booking!");
+
+                // Send Refund Email
+                fetch("/api/send-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        to: user?.email,
+                        subject: `Refund Requested - ${room.name}`,
+                        text: `Namaste, refund request for ${room.name} (Transaction: ${room.transactionId}) has been received.`,
+                        html: `
+                            <div style="font-family: serif; color: #330000; padding: 20px; border: 1px solid #D4AF37;">
+                                <h1 style="color: #D4AF37;">Refund Requested</h1>
+                                <p>We have received your refund request for <strong>${room.name}</strong>.</p>
+                                <p>Transaction ID: ${room.transactionId}</p>
+                                <p>Status: <strong>Processing</strong></p>
+                            </div>
+                        `
+                    })
+                }).catch(e => console.error("Email send failed", e));
+                return;
+            }
+
+            // Fallback to API for Seva bookings
             const res = await fetch(`http://localhost:8080/api/bookings/${id}/refund`, {
                 method: "POST",
             });
             if (res.ok) {
                 toast.success("Refund request submitted successfully!");
                 fetchBookings();
+
+                // Send Refund Email for Seva
+                const sevaBooking = bookings.find(b => b.id === id);
+                if (sevaBooking) {
+                    fetch("/api/send-email", {
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        body: JSON.stringify({
+                            to: user?.email,
+                            subject: `Seva Refund Requested - ${sevaBooking.seva.name}`,
+                            text: `Namaste, your refund request for ${sevaBooking.seva.name} has been received and is being processed.`,
+                            html: `
+                                <div style="font-family: serif; color: #330000; padding: 20px; border: 1px solid #D4AF37;">
+                                    <h1 style="color: #D4AF37;">Seva Refund Requested</h1>
+                                    <p>Namaste,</p>
+                                    <p>We have received your refund request for the seva: <strong>${sevaBooking.seva.name}</strong>.</p>
+                                    <p>Our team will review your request shortly.</p>
+                                    <p><em>Sri Sode Vadiraja Matha</em></p>
+                                </div>
+                            `
+                        })
+                    }).catch(e => console.error("Seva Refund Email failed", e));
+                }
             } else {
                 const err = await res.json();
                 toast.error(err.error || "Failed to submit refund request.");
@@ -157,10 +242,18 @@ export default function BookingsPage() {
                                             <div className="flex flex-wrap justify-between items-start gap-4 mb-6">
                                                 <div>
                                                     <h3 className="text-2xl font-serif text-white uppercase tracking-tight group-hover:text-gold-400 transition-colors">
-                                                        {booking.seva.name}
+                                                        {booking.seva?.name || "Premium Offering"}
                                                     </h3>
                                                     <div className="text-sm text-gold-500 font-bold mt-1">
-                                                        {format(new Date(booking.bookingDate), "PPP p")}
+                                                        {booking.bookingDate ? (
+                                                            (() => {
+                                                                try {
+                                                                    return format(new Date(booking.bookingDate), "PPP p");
+                                                                } catch (e) {
+                                                                    return booking.bookingDate;
+                                                                }
+                                                            })()
+                                                        ) : "Date Not Specified"}
                                                     </div>
                                                 </div>
                                                 <div className={`px-4 py-2 rounded-full border text-xs font-black uppercase tracking-widest flex items-center gap-2 ${getStatusStyle(booking.status)}`}>
@@ -171,11 +264,11 @@ export default function BookingsPage() {
 
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-end">
                                                 <div className="text-white/70 text-sm leading-relaxed italic">
-                                                    "{booking.seva.description}"
+                                                    "{booking.seva?.description || "A sacred contribution to the matha's activities."}"
                                                 </div>
                                                 <div className="flex flex-col items-end gap-3">
                                                     <div className="text-3xl font-serif text-white">
-                                                        ₹{booking.seva.price.toLocaleString()}
+                                                        ₹{(booking.seva?.price || 0).toLocaleString()}
                                                     </div>
                                                     {booking.status === "BOOKED" && (
                                                         <Button

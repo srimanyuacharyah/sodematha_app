@@ -117,7 +117,7 @@ const panchangValues: any = {
     Pournami: { en: "Pournami", kn: "ಪೌರ್ಣಮಿ", sa: "ಪೂರ್ಣಿಮಾ" },
     Amavasya: { en: "Amavasya", kn: "ಅಮಾವಾಸ್ಯೆ", sa: "ಅಮಾವಾಸ್ಯಾ" },
 
-    // Nakshatras
+    // Nakshatras (Supporting both variants)
     Ashwini: { en: "Ashwini", kn: "ಅಶ್ವಿನಿ", sa: "ಅಶ್ವಿನಿ" },
     Bharani: { en: "Bharani", kn: "ಭರಣಿ", sa: "ಭರಣಿ" },
     Krittika: { en: "Krittika", kn: "ಕೃತಿಕಾ", sa: "ಕೃತಿಕಾ" },
@@ -125,9 +125,7 @@ const panchangValues: any = {
     Mrigashira: { en: "Mrigashira", kn: "ಮೃಗಶಿರ", sa: "ಮೃಗಶಿರ" },
     Ardra: { en: "Ardra", kn: "ಆರ್ದ್ರ", sa: "ಆರ್ದ್ರ" },
     Punarvasu: { en: "Punarvasu", kn: "ಪುನರ್ವಸು", sa: "ಪುನರ್ವಸು" },
-    Pushya_Nak: { en: "Pushya", kn: "ಪುಷ್ಯ", sa: "ಪುಷ್ಯ" },
     Ashlesha: { en: "Ashlesha", kn: "ಆಶ್ಲೇಷ", sa: "ಆಶ್ಲೇಷ" },
-    Magha_Nak: { en: "Magha", kn: "ಮಾಘ", sa: "ಮಾಘ" },
     "Purva Phalguni": { en: "Purva Phalguni", kn: "ಪೂರ್ವ ಫಾಲ್ಗುಣಿ", sa: "ಪೂರ್ವ ಫಾಲ್ಗುಣಿ" },
     "Uttara Phalguni": { en: "Uttara Phalguni", kn: "ಉತ್ತರ ಫಾಲ್ಗುಣಿ", sa: "ಉತ್ತರ ಫಾಲ್ಗುಣಿ" },
     Hasta: { en: "Hasta", kn: "ಹಸ್ತ", sa: "ಹಸ್ತ" },
@@ -135,23 +133,33 @@ const panchangValues: any = {
     Swati: { en: "Swati", kn: "ಸ್ವಾತಿ", sa: "ಸ್ವಾತಿ" },
     Vishakha: { en: "Vishakha", kn: "ವಿಶಾಖ", sa: "ವಿಶಾಖ" },
     Anuradha: { en: "Anuradha", kn: "ಅನುರಾಧ", sa: "ಅನುರಾಧ" },
-    Jyeshtha_Nak: { en: "Jyeshtha", kn: "ಜ್ಯೇಷ್ಠ", sa: "ಜ್ಯೇಷ್ಠ" },
     Mula: { en: "Mula", kn: "ಮೂಲ", sa: "ಮೂಲ" },
     "Purva Ashadha": { en: "Purva Ashadha", kn: "ಪೂರ್ವ ಆಷಾಢ", sa: "ಪೂರ್ವ ಆಷಾಢ" },
     "Uttara Ashadha": { en: "Uttara Ashadha", kn: "ಉತ್ತರ ಆಷಾಢ", sa: "ಉತ್ತರ ಆಷಾಢ" },
-    Shravana_Nak: { en: "Shravana", kn: "ಶ್ರಾವಣ", sa: "ಶ್ರಾವಣ" },
     Dhanishta: { en: "Dhanishta", kn: "ಧನಿಷ್ಠ", sa: "ಧನಿಷ್ಠ" },
     Shatabhisha: { en: "Shatabhisha", kn: "ಶತಭಿಷ", sa: "ಶತಭಿಷ" },
     "Purva Bhadrapada": { en: "Purva Bhadrapada", kn: "ಪೂರ್ವ ಭಾದ್ರಪದ", sa: "ಪೂರ್ವ ಭಾದ್ರಪದ" },
     "Uttara Bhadrapada": { en: "Uttara Bhadrapada", kn: "ಉತ್ತರ ಭಾದ್ರಪದ", sa: "ಉತ್ತರ ಭಾದ್ರಪದ" },
     Revati: { en: "Revati", kn: "ರೇವತಿ", sa: "ರೇವತಿ" },
 
+    // Karanas
+    Bava: { en: "Bava", kn: "ಬವ", sa: "ಬವ" },
+    Balava: { en: "Balava", kn: "ಬಾಲವ", sa: "बालव" },
+    Kaulava: { en: "Kaulava", kn: "ಕೌಲವ", sa: "कौलव" },
+    Taitila: { en: "Taitila", kn: "ತೈತಿಲ", sa: "तैतिल" },
+    Gara: { en: "Gara", kn: "ಗರ", sa: "गर" },
+    Vanija: { en: "Vanija", kn: "ವಣಿಜ", sa: "ವಣಿಜ" },
+    Visti: { en: "Visti", kn: "ವಿಸ್ಟಿ", sa: "विष्टि" },
+    Shakuni: { en: "Shakuni", kn: "ಶಕುನಿ", sa: "शकुनि" },
+    Chatushpada: { en: "Chatushpada", kn: "ಚತುಷ್ಪಾದ", sa: "चतुष्पाद" },
+    Naga: { en: "Naga", kn: "ನಾಗ", sa: "नाग" },
+    Kintughna: { en: "Kintughna", kn: "ಕಿಂತುಘ್ನ", sa: "किन्तुघ्न" },
+
     // Others
     Brahma: { en: "Brahma", kn: "ಬ್ರಹ್ಮ", sa: "ಬ್ರಹ್ಮ" },
-    Bava: { en: "Bava", kn: "ಬವ", sa: "ಬವ" },
-    Vanija: { en: "Vanija", kn: "ವಣಿಜ", sa: "ವಣಿಜ" },
     Siddhi: { en: "Siddhi", kn: "ಸಿದ್ಧಿ", sa: "ಸಿದ್ಧಿಃ" },
     Vyatipata: { en: "Vyatipata", kn: "ವ್ಯತೀಪಾತ", sa: "ವ್ಯತೀಪಾತಃ" },
+    "Ratha Saptami": { en: "Ratha Saptami", kn: "ರಥ ಸಪ್ತಮಿ", sa: "रथसप्तमी" },
     "Dwadashi Vrata": { en: "Dwadashi Vrata", kn: "ದ್ವಾದಶಿ ವ್ರತ", sa: "ದ್ವಾದಶಿ ವ್ರತ" },
     "Vijaya Ekadashi": { en: "Vijaya Ekadashi", kn: "ವಿಜಯ ಏಕಾದಶಿ", sa: "ವಿಜಯ ಏಕಾದಶಿ" },
     "Amalaki Ekadashi": { en: "Amalaki Ekadashi", kn: "ಆಮಲಕಿ ಏಕಾದಶಿ", sa: "ಆಮಲಕಿ ಏಕಾದಶಿ" },
@@ -173,6 +181,36 @@ export default function PanchangaPage() {
         fetchPanchanga();
     }, [date]);
 
+    const getFallbackData = (targetDate: Date): PanchangaData => {
+        const formattedDate = format(targetDate, "yyyy-MM-dd");
+        const ref = new Date("2026-01-25"); // Ratha Saptami
+        const diffTime = targetDate.getTime() - ref.getTime();
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+
+        const tithis = [
+            "Prathama", "Dwitiya", "Tritiya", "Chaturthi", "Panchami", "Shashti", "Saptami", "Ashtami", "Navami",
+            "Dashami", "Ekadashi", "Dwadashi", "Trayodashi", "Chaturdashi", "Pournami",
+            "Prathama", "Dwitiya", "Tritiya", "Chaturthi", "Panchami", "Shashti", "Saptami", "Ashtami", "Navami",
+            "Dashami", "Ekadashi", "Dwadashi", "Trayodashi", "Chaturdashi", "Amavasya"
+        ];
+
+        const tithiIdx = (6 + diffDays) % 30;
+        const safeTithiIdx = tithiIdx < 0 ? tithiIdx + 30 : tithiIdx;
+
+        return {
+            date: formattedDate,
+            samvatsara: "Krodhi",
+            rutu: diffDays < 40 ? "Shishira" : "Vasanta",
+            masa: diffDays < 15 ? "Magha" : "Phalguna",
+            paksha: safeTithiIdx < 15 ? "Shukla" : "Krishna",
+            titi: tithis[safeTithiIdx],
+            nakshatra: "Bharani", // Simplification
+            yoga: "Siddhi",
+            karana: "Bava",
+            occasion: formattedDate === "2026-01-25" ? "Ratha Saptami" : "Regular Day",
+        };
+    };
+
     const fetchPanchanga = async () => {
         setLoading(true);
         try {
@@ -182,22 +220,12 @@ export default function PanchangaPage() {
                 const json = await res.json();
                 setData(json);
             } else {
-                // Fallback for demo if backend is down
-                setData({
-                    date: formattedDate,
-                    samvatsara: "Krodhi",
-                    rutu: "Shishira",
-                    masa: "Magha",
-                    paksha: "Shukla",
-                    titi: "Saptami",
-                    nakshatra: "Bharani",
-                    yoga: "Shukla",
-                    karana: "Vanija",
-                    occasion: "Ratha Saptami",
-                });
+                console.warn("Backend returned error, using fallback");
+                setData(getFallbackData(date));
             }
         } catch (error) {
-            console.error("Failed to fetch panchanga", error);
+            console.error("Failed to fetch panchanga, using fallback", error);
+            setData(getFallbackData(date));
         } finally {
             setLoading(false);
         }

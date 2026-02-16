@@ -29,7 +29,7 @@ export default function LoginPage() {
         const otpCode = Math.floor(1000 + Math.random() * 9000).toString();
 
         try {
-            const res = await fetch("http://localhost:8080/api/send-otp-email", {
+            const res = await fetch("/api/send-otp-email", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ email, otp: otpCode, username: name }),

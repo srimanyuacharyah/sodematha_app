@@ -16,16 +16,13 @@ public class PanchangaService {
         Map<String, String> data = new HashMap<>();
         long day = date.toEpochDay();
 
-        // Reference point: Feb 14, 2026 (Saturday) - Epoch 20498
-        // On this day in Udupi/Madhwa tradition:
-        // Tithi: Dwadashi (12th Tithi of the month cycle)
-        // Nakshatra: Purva Ashadha (20th Nakshatra)
-        // Masa: Magha
-        // Paksha: Shukla
-        long refDay = 20498;
+        // Reference point: Jan 25, 2026 (Sunday) - Epoch 20478
+        // This is Ratha Saptami: Magha Masa, Shukla Paksha, Saptami Tithi.
+        // Nakshatra on this day: Ashwini (approx reference for calculation)
+        // Note: For a real demo, we anchor to known major dates.
+        long refDay = 20478; 
         long diff = day - refDay;
 
-        // Hindu Month consists of 30 Tithis (15 Shukla + 15 Krishna)
         String[] tithis = {
                 "Prathama", "Dwitiya", "Tritiya", "Chaturthi", "Panchami", "Shashti", "Saptami", "Ashtami", "Navami",
                 "Dashami", "Ekadashi", "Dwadashi", "Trayodashi", "Chaturdashi", "Pournami",
@@ -35,10 +32,8 @@ public class PanchangaService {
 
         String[] nakshatras = {
                 "Ashwini", "Bharani", "Krittika", "Rohini", "Mrigashira", "Ardra", "Punarvasu", "Pushya", "Ashlesha",
-                "Magha",
-                "Purva Phalguni", "Uttara Phalguni", "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha",
-                "Mula",
-                "Purva Ashadha", "Uttara Ashadha", "Shravana", "Dhanishta", "Shatabhisha", "Purva Bhadrapada",
+                "Magha", "Purva Phalguni", "Uttara Phalguni", "Hasta", "Chitra", "Swati", "Vishakha", "Anuradha", "Jyeshtha",
+                "Mula", "Purva Ashadha", "Uttara Ashadha", "Shravana", "Dhanishta", "Shatabhisha", "Purva Bhadrapada",
                 "Uttara Bhadrapada", "Revati"
         };
 
@@ -46,25 +41,23 @@ public class PanchangaService {
                 "Ashwayuja", "Kartika", "Margashira", "Pushya" };
         String[] rutus = { "Shishira", "Vasanta", "Grishma", "Varsha", "Sharad", "Hemanta" };
 
-        // Calculate Indices with correct wrap-around
-        // Feb 14 is Dwadashi (Index 11 in 0-29 cycle)
-        int tithiIdx = (int) ((11 + diff) % 30);
-        if (tithiIdx < 0)
-            tithiIdx += 30;
+        // Tithi calculation: Jan 25 is Saptami (Index 6)
+        int tithiIdx = (int) ((6 + diff) % 30);
+        if (tithiIdx < 0) tithiIdx += 30;
 
-        // Feb 14 is Purva Ashadha (Index 19 in 0-26 cycle)
-        int nakshatraIdx = (int) ((19 + diff) % 27);
-        if (nakshatraIdx < 0)
-            nakshatraIdx += 27;
+        // Nakshatra calculation: Jan 25 is Revati (Index 26) 
+        // Diff between Jan 25 and Feb 14 is 20 days. 
+        // Feb 14 would be (26 + 20) % 27 = 46 % 27 = 19 (Purva Ashadha). Correct!
+        int nakshatraIdx = (int) ((26 + diff) % 27);
+        if (nakshatraIdx < 0) nakshatraIdx += 27;
 
-        // Masa changes roughly every 30 days. Magha at refDay diff=0.
-        int masaIdx = (int) (((diff + 15) / 30) % 12);
-        if (masaIdx < 0)
-            masaIdx += 12;
+        // Masa changes every ~29.5 days. Jan 25 is Magha.
+        // We'll use a simpler 30-day shift for demo purposes.
+        int masaIdx = (int) (((diff + 10) / 30) % 12); // Offset to keep Jan 25 in Magha
+        if (masaIdx < 0) masaIdx += 12;
 
-        int rutuIdx = (int) (((diff + 15) / 60) % 6);
-        if (rutuIdx < 0)
-            rutuIdx += 6;
+        int rutuIdx = (int) (((diff + 40) / 60) % 6); // Shishira starts before Jan 25
+        if (rutuIdx < 0) rutuIdx += 6;
 
         data.put("date", date.toString());
         data.put("samvatsara", "Krodhi");
@@ -74,12 +67,14 @@ public class PanchangaService {
         data.put("titi", tithis[tithiIdx]);
         data.put("nakshatra", nakshatras[nakshatraIdx]);
         data.put("yoga", (day % 2 == 0) ? "Siddhi" : "Vyatipata");
-        data.put("karana", (day % 2 == 0) ? "Taitila" : "Garaja");
+        data.put("karana", (day % 2 == 0) ? "Bava" : "Balava");
 
-        // Specific Occasions based on researched dates
-        if (day == refDay) {
+        // Specific Occasions
+        if (day == 20478) {
+            data.put("occasion", "Ratha Saptami");
+        } else if (day == 20498) {
             data.put("occasion", "Dwadashi Vrata");
-        } else if (day == refDay - 2) {
+        } else if (day == 20496) {
             data.put("occasion", "Vijaya Ekadashi");
         } else if (day == 20511) { // Feb 27
             data.put("occasion", "Amalaki Ekadashi");

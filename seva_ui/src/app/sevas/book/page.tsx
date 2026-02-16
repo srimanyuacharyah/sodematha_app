@@ -111,7 +111,7 @@ function BookingFormContent() {
 
             // Call Payment API to send real email
             try {
-                // 1. Send Confirmation Email
+                // 1. Send Confirmation Email (Legacy/Direct)
                 await fetch("http://localhost:8080/api/payment", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
@@ -122,7 +122,7 @@ function BookingFormContent() {
                         status: "success",
                         username: formData.name
                     }),
-                });
+                }).catch(e => console.warn("Legacy payment API failed, continuing..."));
 
                 // 2. Save Booking to Backend Database
                 await fetch("http://localhost:8080/api/bookings", {
@@ -133,9 +133,34 @@ function BookingFormContent() {
                         sevaId: selectedSeva.id,
                         transactionId: "TX-" + Date.now()
                     }),
-                });
+                }).catch(e => console.warn("Legacy booking API failed, continuing..."));
+
+                // 3. Send Confirmation Email via Internal Proxy (Recommended)
+                await fetch("/api/send-email", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                        to: formData.email,
+                        subject: `Seva Booking Confirmed - ${selectedSeva.name}`,
+                        text: `Namaste ${formData.name}, your booking for ${selectedSeva.name} is confirmed. Amount: ₹${selectedSeva.amount}.`,
+                        html: `
+                            <div style="font-family: serif; color: #330000; padding: 20px; border: 1px solid #D4AF37;">
+                                <h1 style="color: #D4AF37;">Seva Booking Confirmed</h1>
+                                <p>Namaste <strong>${formData.name}</strong>,</p>
+                                <p>Your seva booking has been successfully recorded at Sri Sode Vadiraja Matha.</p>
+                                <ul>
+                                    <li><strong>Seva:</strong> ${selectedSeva.name}</li>
+                                    <li><strong>Amount:</strong> ₹${selectedSeva.amount}</li>
+                                    <li><strong>Date:</strong> ${new Date().toLocaleDateString()}</li>
+                                </ul>
+                                <p>May Lord Sri Krishna bless you.</p>
+                                <p><em>Sri Sode Vadiraja Matha</em></p>
+                            </div>
+                        `
+                    })
+                }).catch(e => console.error("Internal Email Proxy failed", e));
             } catch (err) {
-                console.error("Backend Sync Failed", err);
+                console.error("Payment Action Sync Failed", err);
             }
         } else {
             setIsSubmitting(false);

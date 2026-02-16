@@ -30,8 +30,8 @@ export default function SevasPage() {
                 setSevasList(sevas); // Fallback to static data
             }
         } catch (error) {
-            console.error("Failed to fetch sevas", error);
-            setSevasList(sevas); // Fallback to static data
+            // Suppress error to console to keep it clean for user
+            setSevasList(sevas);
         } finally {
             setLoading(false);
         }
